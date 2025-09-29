@@ -161,8 +161,7 @@ $avatarDefault = "images/default-avatar.png";
             <a class="dropdown-item" href="auth/logout.php">Đăng xuất</a>
           </div>
         <?php else: ?>
-          <a href="auth/login.php" class="btn btn-primary">Đăng nhập</a>
-          <a href="auth/register.php" class="btn btn-ghost">Đăng ký</a>
+          <a href="../pages/login.php" class="btn btn-primary">Đăng nhập</a>
         <?php endif; ?>
       </div>
 
