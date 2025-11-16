@@ -1,7 +1,7 @@
 <?php
 // header.php - include this at top of pages where header needed
 if (session_status() === PHP_SESSION_NONE) session_start();
-include_once "db.php"; // phải trả về $conn (MySQLi)
+//include_once "webbandoan.php"; // phải trả về $conn (MySQLi)
 
 // ----- Lấy thông tin user -----
 $userInfo = null;
@@ -56,9 +56,9 @@ if (isset($conn) && !empty($userInfo)) {
 }
 
 // đường dẫn resources
-$cssPath = "assets/css/header.css";
-$jsPath  = "assets/js/header.js";
-$logo    = "images/logo.png";
+$cssPath = "/assets/css/header.css";
+$jsPath  = "/assets/js/header.js";
+$logo    = "/images/logo.png";
 $avatarDefault = "images/default-avatar.png";
 ?>
 <!doctype html>

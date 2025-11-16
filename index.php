@@ -26,9 +26,11 @@
         <h2>Món ăn nổi bật</h2>
         <div class="food-grid">
             <div class="food-item">
-                <img src="assets/img/comga.jpg" alt="Món ăn 1">
-                <h3>Cơm gà</h3>
-                <p>30.000 VNĐ</p>
+                <a href="/pages/chitietmonan.php" class="food-link">
+                    <img src="assets/img/comga.jpg" alt="Món ăn 1">
+                    <h3>Cơm gà</h3>
+                    <p>30.000 VNĐ</p>
+                </a>
             </div>
             <div class="food-item">
                 <img src="assets/img/garan.jpg" alt="Món ăn 2">

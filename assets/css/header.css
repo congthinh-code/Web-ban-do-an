@@ -128,11 +128,13 @@ body {
   gap: 0.8rem;
 }
 .action-item {
+  text-decoration: none;
   position: relative;
 }
 
 /* Icon button (🔔 🛒 ☰ 🇻🇳) */
 .btn-ghost {
+  text-decoration: none;
   position: relative;
   background: rgba(255,255,255,0.15);
   border: none;

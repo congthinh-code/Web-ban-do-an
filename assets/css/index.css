@@ -87,3 +87,14 @@
     border-radius: 8px;
     margin-bottom: 12px;
 }
+
+/* Make the whole card link behave like a block and inherit text styles */
+.food-item > .food-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.food-item > .food-link h3, .food-item > .food-link p {
+    margin: 0;
+}

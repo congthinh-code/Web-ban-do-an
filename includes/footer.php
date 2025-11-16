@@ -53,5 +53,5 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <!-- Gắn file CSS + JS -->
-<link rel="stylesheet" href="assets/css/footer.css">
-<script src="assets/js/footer.js"></script>
+<link rel="stylesheet" href="/assets/css/footer.css">
+<script src="/assets/js/footer.js"></script>
