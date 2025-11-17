@@ -1,9 +1,49 @@
+<?php
+// Load product details from DB for this page
+require_once __DIR__ . '/../database/db.php';
+require_once __DIR__ . '/../functions/functions.php';
+
+$mamon = isset($_GET['mamon']) ? intval($_GET['mamon']) : 0;
+$product = null;
+$images = [];
+$discountPercent = null;
+$originalPrice = null;
+$currentPrice = 0;
+
+if ($mamon > 0) {
+    $sql = "SELECT Mamon, Tenmon, Giaban, Anh, Noidung, COALESCE(Giagoc, 0) AS Giagoc FROM Monan WHERE Mamon = ? LIMIT 1";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param('i', $mamon);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $product = $res->fetch_assoc();
+            // parse images: support '|' delimited list or single path
+            if (!empty($product['Anh'])) {
+                if (strpos($product['Anh'], '|') !== false) {
+                    $images = array_filter(array_map('trim', explode('|', $product['Anh'])));
+                } else {
+                    $images = [trim($product['Anh'])];
+                }
+            }
+            // pricing
+            $originalPrice = !empty($product['Giagoc']) ? floatval($product['Giagoc']) : 0;
+            $currentPrice = floatval($product['Giaban']);
+            if ($originalPrice > 0 && $originalPrice > $currentPrice) {
+                $discountPercent = round((($originalPrice - $currentPrice) / $originalPrice) * 100);
+            }
+        }
+        $stmt->close();
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi Tiết Sản Phẩm - Bánh Mì Phô Mai</title>
+    <title>Chi Tiết Sản Phẩm</title>
     <link rel="stylesheet" href="/assets/css/chitietmonan.css">
 </head>
 <body>
@@ -45,7 +85,7 @@
     <div class="container">
         <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="#">Trang chủ</a> / <a href="#">Thực đơn</a> / <span>Bánh Mì Phô Mai Bơ Tỏi</span>
+            <a href="../index.php">Trang chủ</a> / <a href="#">Thực đơn</a> / <!--<span>Bánh Mì Phô Mai Bơ Tỏi</span>-->
         </div>
 
         <!-- Product Card -->
@@ -68,28 +108,33 @@
             <!-- Gallery -->
             <div class="gallery">
                 <div class="main-image">
-                    <img id="mainImage" src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600" alt="Bánh Mì">
-                    <div class="discount-badge">-31%</div>
+                    <?php if ($product && !empty($images)): ?>
+                        <img id="mainImage" src="<?php echo htmlspecialchars(resolveImagePath($images[0])); ?>" alt="<?php echo htmlspecialchars($product['Tenmon']); ?>">
+                    <?php else: ?>
+                        <img id="mainImage" src="/assets/img/default-food.jpg" alt="Sản phẩm">
+                    <?php endif; ?>
+                    <?php if ($discountPercent !== null): ?>
+                        <div class="discount-badge">-<?php echo $discountPercent; ?>%</div>
+                    <?php endif; ?>
                 </div>
                 <div class="thumbnails">
-                    <div class="thumbnail active" data-index="0">
-                        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600" alt="Thumb 1">
-                    </div>
-                    <div class="thumbnail" data-index="1">
-                        <img src="https://images.unsplash.com/photo-1608198399988-841b2d9e515b?w=600" alt="Thumb 2">
-                    </div>
-                    <div class="thumbnail" data-index="2">
-                        <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600" alt="Thumb 3">
-                    </div>
-                    <div class="thumbnail" data-index="3">
-                        <img src="https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=600" alt="Thumb 4">
-                    </div>
+                    <?php if (!empty($images)): ?>
+                        <?php foreach ($images as $idx => $img): ?>
+                            <div class="thumbnail <?php echo $idx === 0 ? 'active' : ''; ?>" data-index="<?php echo $idx; ?>">
+                                <img src="<?php echo htmlspecialchars(resolveImagePath($img)); ?>" alt="Thumb <?php echo $idx+1; ?>">
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="thumbnail active" data-index="0">
+                            <img src="/assets/img/default-food.jpg" alt="Thumb 1">
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Product Info -->
             <div class="product-info">
-                <h1 class="product-title">Bánh Mì Phô Mai Bơ Tỏi</h1>
+                <h1 class="product-title"><?php echo $product ? htmlspecialchars($product['Tenmon']) : 'Sản phẩm'; ?></h1>
                 
                 <div class="rating">
                     <div class="stars">★★★★★</div>
@@ -97,13 +142,14 @@
                 </div>
 
                 <div class="price-section">
-                    <span class="current-price">45.000₫</span>
-                    <span class="original-price">65.000₫</span>
+                    <span class="current-price"><?php echo $product ? number_format(floatval($product['Giaban']),0,',','.').'₫' : ''; ?></span>
+                    <?php if (!empty($originalPrice) && $originalPrice > floatval($product['Giaban'])): ?>
+                        <span class="original-price"><?php echo number_format($originalPrice,0,',','.'); ?>₫</span>
+                    <?php endif; ?>
                 </div>
 
                 <p class="description">
-                    Bánh mì thơm giòn được phết bơ tỏi thơm lừng, phủ phô mai tan chảy béo ngậy. 
-                    Được làm từ nguyên liệu tươi ngon, đảm bảo vệ sinh an toàn thực phẩm.
+                    <?php echo $product ? nl2br(htmlspecialchars($product['Noidung'])) : 'Mô tả sản phẩm chưa có.'; ?>
                 </p>
 
                 <!--<div class="size-selector">
@@ -125,10 +171,17 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button class="add-to-cart-btn">
-                        <span>🛒</span>
-                        <span>Thêm vào giỏ hàng</span>
-                    </button>
+                    <?php if ($product): ?>
+                        <a class="add-to-cart-btn" href="/pages/cart.php?add=<?php echo intval($mamon); ?>&return_url=/pages/cart.php">
+                            <span>🛒</span>
+                            <span>Thêm vào giỏ hàng</span>
+                        </a>
+                    <?php else: ?>
+                        <button class="add-to-cart-btn" disabled>
+                            <span>🛒</span>
+                            <span>Không có sản phẩm</span>
+                        </button>
+                    <?php endif; ?>
                 </div>
 
                 <div class="features">

@@ -1,0 +1,166 @@
+<?php
+session_start();
+include_once '../database/db.php'; // phải tạo $conn (MySQLi)
+require_once __DIR__ . '/../functions/functions.php';
+
+// ----- Xử lý thêm sản phẩm vào giỏ từ ?add=ID -----
+if (isset($_GET['add'])) {
+    $prod_id = intval($_GET['add']);
+
+    // Lấy thông tin sản phẩm từ db
+    $sql = "SELECT Mamon AS id, Tenmon AS name, Giaban AS price, Anh AS image FROM Monan WHERE Mamon = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $prod_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $product = $res->fetch_assoc();
+
+            if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+
+            if (isset($_SESSION['cart'][$prod_id])) {
+                $_SESSION['cart'][$prod_id]['qty'] += 1;
+            } else {
+                $_SESSION['cart'][$prod_id] = [
+                    'id' => $product['id'],
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'image' => $product['image'],
+                    'qty' => 1
+                ];
+            }
+        }
+        $stmt->close();
+    }
+
+    // Decide where to redirect after adding
+    $return_url = $_GET['return_url'] ?? '';
+    // Basic safety: allow only local paths (no http scheme)
+    if ($return_url && (stripos($return_url, 'http://') === 0 || stripos($return_url, 'https://') === 0)) {
+        $return_url = '';
+    }
+    if (!$return_url) $return_url = 'cart.php';
+    header("Location: " . $return_url);
+    exit;
+}
+
+// ----- Xóa sản phẩm khỏi giỏ hàng -----
+if (isset($_GET['remove_id'])) {
+    $rid = intval($_GET['remove_id']);
+    if (isset($_SESSION['cart'][$rid])) {
+        unset($_SESSION['cart'][$rid]);
+    }
+    header("Location: cart.php");
+    exit;
+}
+
+// ----- Tăng giảm số lượng qua link -----
+if (isset($_GET['increase'])) {
+    $id = intval($_GET['increase']);
+    if (isset($_SESSION['cart'][$id])) {
+        $_SESSION['cart'][$id]['qty'] += 1;
+    }
+    header("Location: cart.php");
+    exit;
+}
+
+if (isset($_GET['decrease'])) {
+    $id = intval($_GET['decrease']);
+    if (isset($_SESSION['cart'][$id]) && $_SESSION['cart'][$id]['qty'] > 1) {
+        $_SESSION['cart'][$id]['qty'] -= 1;
+    }
+    header("Location: cart.php");
+    exit;
+}
+
+// ----- Cập nhật số lượng -----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart'])) {
+    foreach ($_POST['qty'] as $id => $q) {
+        $id = intval($id);
+        $q = intval($q);
+        if ($q < 1) $q = 1;
+        if (isset($_SESSION['cart'][$id])) {
+            $_SESSION['cart'][$id]['qty'] = $q;
+        }
+    }
+    header("Location: cart.php");
+    exit;
+}
+
+// ----- Tính tổng -----
+$cartItems = $_SESSION['cart'] ?? [];
+$totalPrice = 0;
+foreach ($cartItems as $item) {
+    $totalPrice += $item['price'] * $item['qty'];
+}
+
+// ----- Lấy thông tin user giống header.php -----
+$userInfo = null;
+if (!empty($_SESSION['user_id']) && isset($conn)) {
+    $uid = intval($_SESSION['user_id']);
+    $sql = "SELECT id, username, email, avatar FROM users WHERE id = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $userInfo = $res->fetch_assoc();
+        }
+        $stmt->close();
+    }
+}
+
+?>
+
+<?php include '../includes/header.php'; ?>
+<link rel="stylesheet" href="../assets/css/cart.css">
+
+<div class="cart-container">
+    <h2>Giỏ hàng của bạn</h2>
+
+    <?php if (empty($cartItems)) : ?>
+        <p>Giỏ hàng đang trống!</p>
+        <a href="menu.php" class="btn-link">Xem thực đơn</a>
+    <?php else : ?>
+        <form method="POST" action="cart.php">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Tạm tính</th>
+                        <th>Xóa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($cartItems as $item): ?>
+                        <tr>
+                            <td class="product-info">
+                                <img src="<?php echo htmlspecialchars(resolveImagePath($item['image'] ?? '')); ?>" alt="">
+                                <span><?php echo htmlspecialchars($item['name']); ?></span>
+                            </td>
+                            <td><?php echo number_format($item['price']); ?>₫</td>
+                            <td class="qty-control">
+                                <a href="cart.php?decrease=<?php echo $item['id']; ?>" class="qty-btn">-</a>
+                                <input type="number" name="qty[<?php echo $item['id']; ?>]" value="<?php echo $item['qty']; ?>" min="1">
+                                <a href="cart.php?increase=<?php echo $item['id']; ?>" class="qty-btn">+</a>
+                            </td>
+                            <td><?php echo number_format($item['price'] * $item['qty']); ?>₫</td>
+                            <td><a href="cart.php?remove_id=<?php echo $item['id']; ?>" class="remove-link">Xóa</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <div class="cart-footer">
+                <button type="submit" name="update_cart" class="btn-update">Cập nhật giỏ hàng</button>
+                <span class="total-price">Tổng cộng: <?php echo number_format($totalPrice); ?>₫</span>
+            </div>
+        </form>
+
+        <div class="checkout">
+            <a href="checkout.php" class="btn-checkout">Thanh toán</a>
+        </div>
+    <?php endif; ?>
+</div>

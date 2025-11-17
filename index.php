@@ -1,3 +1,15 @@
+<?php
+// Load DB and helper functions so we can fetch featured items
+require_once __DIR__ . '/database/db.php';
+require_once __DIR__ . '/functions/functions.php';
+
+$totalItems = countMenuItems($conn);
+$featuredItems = [];
+if ($totalItems > 0) {
+    // load all items (if DB is large, consider pagination instead)
+    $featuredItems = getMenuItems($conn, ['limit' => $totalItems, 'offset' => 0]);
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -25,28 +37,19 @@
     <div class="fooddishes">
         <h2>Món ăn nổi bật</h2>
         <div class="food-grid">
-            <div class="food-item">
-                <a href="/pages/chitietmonan.php" class="food-link">
-                    <img src="assets/img/comga.jpg" alt="Món ăn 1">
-                    <h3>Cơm gà</h3>
-                    <p>30.000 VNĐ</p>
-                </a>
-            </div>
-            <div class="food-item">
-                <img src="assets/img/garan.jpg" alt="Món ăn 2">
-                <h3>Gà rán</h3>
-                <p>45.000 VNĐ</p>
-            </div>
-            <div class="food-item">
-                <img src="assets/img/pho.jpg" alt="Món ăn 3">
-                <h3>Phở</h3>
-                <p>30.000 VNĐ</p>
-            </div>
-            <div class="food-item">
-                <img src="assets/img/bunbohue.webp" alt="Món ăn 4">
-                <h3>Bún bò huế</h3>
-                <p>30.000 VNĐ</p>
-            </div>
+            <?php if (!empty($featuredItems)): ?>
+                <?php foreach ($featuredItems as $it): ?>
+                    <div class="food-item">
+                        <a href="/pages/chitietmonan.php?mamon=<?php echo urlencode($it['Mamon']); ?>" class="food-link">
+                            <img src="<?php echo htmlspecialchars(resolveImagePath($it['Anh'] ?? '')); ?>" alt="<?php echo htmlspecialchars($it['Tenmon']); ?>">
+                            <h3><?php echo htmlspecialchars($it['Tenmon']); ?></h3>
+                            <p><?php echo number_format($it['Giaban'],0,',','.'); ?> VNĐ</p>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="food-item">Chưa có sản phẩm nổi bật.</div>
+            <?php endif; ?>
         </div>
     </div>
     <?php include 'includes/footer.php'?>

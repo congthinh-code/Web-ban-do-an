@@ -80,6 +80,25 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
+  // Search submit: redirect to search page with keyword as GET param
+  const searchBtn = document.getElementById('search-btn');
+  if (input) {
+    // submit on Enter
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const q = input.value.trim();
+        if (q) window.location.href = '/pages/search.php?keyword=' + encodeURIComponent(q);
+      }
+    });
+  }
+  if (searchBtn && input) {
+    searchBtn.addEventListener('click', (e) => {
+      const q = input.value.trim();
+      if (!q) return;
+      window.location.href = '/pages/search.php?keyword=' + encodeURIComponent(q);
+    });
+  }
+
   // Theme toggle (dark/light) saved in localStorage
   const themeToggle = document.getElementById('themeToggle');
   const html = document.documentElement;

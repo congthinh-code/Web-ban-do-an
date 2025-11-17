@@ -11,6 +11,7 @@ CREATE TABLE Monan (
   Mamon INT AUTO_INCREMENT PRIMARY KEY,
   Tenmon VARCHAR(100) NOT NULL,
   Giaban DECIMAL(10,2) NOT NULL,
+  Giagoc DECIMAL(10,2) NOT NULL,
   Noidung VARCHAR(500),
   Anh VARCHAR(255),
   Maloai INT,
@@ -69,15 +70,17 @@ CREATE TABLE Admin (
 INSERT INTO Loaimonan (Tenloai) VALUES
 ('Cơm'), ('Phở'), ('Đồ uống'), ('Bánh ngọt'), ('Mì'), ('Gà rán');
 
-INSERT INTO Monan (Tenmon, Giaban, Noidung, Anh, Maloai) VALUES
-('Cơm gà xối mỡ', 45000, 'Cơm chiên giòn với gà xối mỡ thơm ngon', 'image/comgaxoimo.jpg', 1),
-('Phở bò tái', 40000, 'Phở truyền thống với thịt bò tái mềm', 'image/phobo.jpg', 2),
-('Trà sữa trân châu', 30000, 'Trà sữa vị truyền thống, topping trân châu đen', 'image/trasua.jpg', 3),
-('Bánh flan caramel', 20000, 'Bánh flan mềm mịn, sốt caramel thơm ngon', 'image/banhflan.jpg', 4),
-('Mì xào hải sản', 55000, 'Mì xào với tôm, mực, rau củ tươi ngon', 'image/mixaohaison.jpg', 5),
-('Gà rán giòn', 35000, 'Miếng gà chiên giòn rụm đậm vị', 'image/garan.jpg', 6),
-('Nước cam tươi', 25000, 'Nước cam ép nguyên chất, không đường', 'image/nuoccam.jpg', 3),
-('Cơm chiên dương châu', 50000, 'Cơm chiên với xúc xích, trứng và rau củ', 'image/comchien.jpg', 1);
+INSERT INTO Monan (Tenmon, Giaban, Giagoc, Noidung, Anh, Maloai) VALUES
+('Cơm gà xối mỡ', 45000, 45000, 'Cơm chiên giòn với gà xối mỡ thơm ngon', 'assets/img/comgaxoimo.jpg', 1),
+('Phở bò tái', 40000, 40000, 'Phở truyền thống với thịt bò tái mềm', 'assets/img/phobo.jpg', 2),
+('Trà sữa trân châu', 30000, 30000, 'Trà sữa vị truyền thống, topping trân châu đen', 'assets/img/trasua.webp', 3),
+('Bánh flan caramel', 20000, 20000, 'Bánh flan mềm mịn, sốt caramel thơm ngon', 'assets/img/banhflan.jpg', 4),
+('Mì xào hải sản', 55000, 55000, 'Mì xào với tôm, mực, rau củ tươi ngon', 'assets/img/mixaohaisan.jpg', 5),
+('Gà rán giòn', 35000, 35000, 'Miếng gà chiên giòn rụm đậm vị', 'assets/img/garan.jpg', 6),
+('Nước cam tươi', 25000, 25000, 'Nước cam ép nguyên chất, không đường', 'assets/img/nuoccam.webp', 3),
+('Matcha đá xay', 35000, 35000, 'Matcha đá xay', 'assets/img/matchadaxay.webp', 3),
+('Nước ép ổi', 25000, 25000, 'Nước ổi ép nguyên chất, không đường', 'assets/img/nuocoi.jpg', 3),
+('Cơm chiên dương châu', 50000, 50000, 'Cơm chiên với xúc xích, trứng và rau củ', 'assets/img/comchien.jpg', 1);
 
 INSERT INTO Khachhang (Hoten, Taikhoan, Matkhau, Email, DienthoaiKH, DiachiKH, Ngaysinh) VALUES
 ('Nguyễn Văn A', 'nguyenvana', '123456', 'vana@gmail.com', '0901234567', '123 Lê Lợi, Q1, TP.HCM', '1999-05-15'),

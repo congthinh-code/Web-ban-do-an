@@ -76,7 +76,7 @@ $avatarDefault = "images/default-avatar.png";
 
     <!-- LEFT: logo -->
     <div class="header-left">
-      <a href="index.php" class="brand-link">
+      <a href="../index.php" class="brand-link">
         <?php if (file_exists($logo)): ?>
           <img src="<?php echo htmlspecialchars($logo); ?>" alt="Logo" class="brand-logo">
         <?php else: ?>
@@ -139,7 +139,7 @@ $avatarDefault = "images/default-avatar.png";
 
       <!-- cart -->
       <div class="action-item">
-        <a href="cart.php" class="btn-ghost cart-btn" aria-label="Giỏ hàng">
+        <a href="/pages/cart.php" class="btn-ghost cart-btn" aria-label="Giỏ hàng">
           🛒
           <?php if ($cartCount > 0): ?>
             <span class="badge" id="cartBadge"><?php echo $cartCount; ?></span>
