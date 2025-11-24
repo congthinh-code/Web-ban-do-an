@@ -7,7 +7,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
   $uid = intval($_SESSION['user_id']);
-  $sql = "SELECT id, username, email, avatar FROM users WHERE id = ?";
+  // Lấy thông tin từ Khachhang (sử dụng alias để tương thích với code hiện có)
+  $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Khachhang WHERE MaKH = ?";
   if ($stmt = $conn->prepare($sql)) {
     $stmt->bind_param("i", $uid);
     $stmt->execute();
@@ -28,32 +29,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
   }
 }
 
-// ----- Lấy thông báo (nếu có bảng notifications) -----
-$notifCount = 0;
-$notifs = [];
-if (isset($conn) && !empty($userInfo)) {
-  $uid = intval($userInfo['id']);
-  $sqlCount = "SELECT COUNT(*) AS cnt FROM notifications WHERE user_id = ? AND is_read = 0";
-  if ($stmt = $conn->prepare($sqlCount)) {
-    $stmt->bind_param("i", $uid);
-    if ($stmt->execute()) {
-      $r = $stmt->get_result();
-      if ($r && $row = $r->fetch_assoc()) $notifCount = intval($row['cnt']);
-    }
-    $stmt->close();
-  }
-  $sqlList = "SELECT id, title, is_read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5";
-  if ($stmt = $conn->prepare($sqlList)) {
-    $stmt->bind_param("i", $uid);
-    if ($stmt->execute()) {
-      $r = $stmt->get_result();
-      if ($r) {
-        while ($row = $r->fetch_assoc()) $notifs[] = $row;
-      }
-    }
-    $stmt->close();
-  }
-}
+// (Notifications removed) — no notification queries or UI in header
 
 // đường dẫn resources
 $cssPath = "/assets/css/header.css";
@@ -76,7 +52,7 @@ $avatarDefault = "images/default-avatar.png";
 
     <!-- LEFT: logo -->
     <div class="header-left">
-      <a href="../index.php" class="brand-link">
+      <a href="/index.php" class="brand-link">
         <?php if (file_exists($logo)): ?>
           <img src="<?php echo htmlspecialchars($logo); ?>" alt="Logo" class="brand-logo">
         <?php else: ?>
@@ -93,10 +69,10 @@ $avatarDefault = "images/default-avatar.png";
     <div class="header-center">
       <nav class="main-nav" aria-label="Primary navigation">
         <ul class="nav-list">
-          <li><a href="index.php">Trang chủ</a></li>
-          <li><a href="menu.php">Thực đơn</a></li>
-          <li><a href="deals.php">Khuyến mãi</a></li>
-          <li><a href="news.php">Tin tức</a></li>
+          <li><a href="/index.php">Trang chủ</a></li>
+          <li><a href="/pages/menu.php">Thực đơn</a></li>
+          <li><a href="/pages/deals.php">Khuyến mãi</a></li>
+          <li><a href="/pages/news.php">Tin tức</a></li>
         </ul>
       </nav>
 
@@ -110,32 +86,7 @@ $avatarDefault = "images/default-avatar.png";
     <!-- RIGHT: actions -->
     <div class="header-right">
 
-      <!-- notifications -->
-      <div class="action-item dropdown" id="notifWrap">
-        <button id="notifBtn" class="btn-ghost" aria-haspopup="true" aria-expanded="false" aria-label="Thông báo">
-          🔔
-          <?php if ($notifCount > 0): ?>
-            <span class="badge" id="notifBadge"><?php echo $notifCount; ?></span>
-          <?php endif; ?>
-        </button>
-
-        <div class="dropdown-panel" id="notifPanel" role="menu" aria-hidden="true">
-          <div class="dropdown-head">Thông báo</div>
-          <?php if (count($notifs) === 0): ?>
-            <div class="dropdown-empty">Không có thông báo</div>
-          <?php else: ?>
-            <ul class="notif-list">
-              <?php foreach ($notifs as $n): ?>
-                <li class="notif-item <?php echo $n['is_read'] ? 'read' : 'unread'; ?>">
-                  <div class="notif-title"><?php echo htmlspecialchars($n['title']); ?></div>
-                  <div class="notif-time"><?php echo htmlspecialchars($n['created_at']); ?></div>
-                </li>
-              <?php endforeach; ?>
-            </ul>
-            <a class="dropdown-foot" href="notifications.php">Xem tất cả</a>
-          <?php endif; ?>
-        </div>
-      </div>
+      <!-- notifications removed -->
 
       <!-- cart -->
       <div class="action-item">
@@ -156,12 +107,12 @@ $avatarDefault = "images/default-avatar.png";
           </button>
 
           <div class="dropdown-panel" id="accountPanel" role="menu" aria-hidden="true">
-            <a class="dropdown-item" href="profile.php">Hồ sơ</a>
-            <a class="dropdown-item" href="orders.php">Đơn hàng</a>
-            <a class="dropdown-item" href="auth/logout.php">Đăng xuất</a>
+            <a class="dropdown-item" href="/pages/profile.php">Hồ sơ</a>
+            <a class="dropdown-item" href="/pages/orders.php">Đơn hàng</a>
+            <a class="dropdown-item" href="/pages/auth/logout.php">Đăng xuất</a>
           </div>
         <?php else: ?>
-          <a href="../pages/login.php" class="btn btn-primary">Đăng nhập</a>
+          <a href="/pages/login.php" class="btn btn-primary">Đăng nhập</a>
         <?php endif; ?>
       </div>
 
@@ -182,17 +133,17 @@ $avatarDefault = "images/default-avatar.png";
     <div class="mobile-inner">
       <button id="mobileClose" class="mobile-close" aria-label="Đóng">✕</button>
       <nav class="mobile-nav">
-        <a href="index.php">Trang chủ</a>
-        <a href="menu.php">Thực đơn</a>
-        <a href="deals.php">Khuyến mãi</a>
-        <a href="news.php">Tin tức</a>
+        <a href="/index.php">Trang chủ</a>
+        <a href="/pages/menu.php">Thực đơn</a>
+        <a href="/pages/deals.php">Khuyến mãi</a>
+        <a href="/pages/news.php">Tin tức</a>
         <?php if ($userInfo): ?>
-          <a href="profile.php">Hồ sơ</a>
-          <a href="orders.php">Đơn hàng</a>
-          <a href="auth/logout.php">Đăng xuất</a>
+          <a href="/pages/profile.php">Hồ sơ</a>
+          <a href="/pages/orders.php">Đơn hàng</a>
+          <a href="/pages/auth/logout.php">Đăng xuất</a>
         <?php else: ?>
-          <a href="auth/login.php">Đăng nhập</a>
-          <a href="auth/register.php">Đăng ký</a>
+          <a href="/pages/login.php">Đăng nhập</a>
+          <a href="/pages/login.php?action=register">Đăng ký</a>
         <?php endif; ?>
       </nav>
     </div>

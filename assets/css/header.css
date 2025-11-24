@@ -236,7 +236,7 @@ body {
   display: none;
   z-index: 999;
 }
-.dropdown:hover .dropdown-panel {
+.dropdown.open .dropdown-panel {
   display: block;
 }
 .dropdown-head {

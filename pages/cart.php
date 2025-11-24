@@ -7,6 +7,14 @@ require_once __DIR__ . '/../functions/functions.php';
 if (isset($_GET['add'])) {
     $prod_id = intval($_GET['add']);
 
+    // Yêu cầu người dùng phải đăng nhập trước khi thêm vào giỏ
+    if (empty($_SESSION['user_id'])) {
+        // Chuyển hướng tới trang đăng nhập, giữ lại URL hiện tại để trả về sau khi đăng nhập
+        $current = $_SERVER['REQUEST_URI'] ?? '/pages/cart.php';
+        header("Location: /pages/login.php?return_url=" . urlencode($current));
+        exit;
+    }
+
     // Lấy thông tin sản phẩm từ db
     $sql = "SELECT Mamon AS id, Tenmon AS name, Giaban AS price, Anh AS image FROM Monan WHERE Mamon = ?";
     if ($stmt = $conn->prepare($sql)) {
@@ -98,7 +106,7 @@ foreach ($cartItems as $item) {
 $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
     $uid = intval($_SESSION['user_id']);
-    $sql = "SELECT id, username, email, avatar FROM users WHERE id = ?";
+    $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Khachhang WHERE MaKH = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $uid);
         $stmt->execute();
