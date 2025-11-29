@@ -57,7 +57,7 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($product['Tenmon']); ?> - Khuyến mãi</title>
-    <link rel="stylesheet" href="/assets/css/chitietmonan.css">
+    <link rel="stylesheet" href="/assets/css/detaildeals.css">
 </head>
 <body>
     <!-- Header -->
@@ -146,7 +146,7 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
 
                     <div class="action-buttons">
                         <!-- Thêm vào giỏ: mặc định +1, cho phép return về lại trang khuyến mãi/chi tiết -->
-                        <a class="add-to-cart-btn"
+                        <a class="add-to-cart-btn  btn-add-cart" 
                            href="/pages/cart.php?add=<?php echo (int)$product['Mamon']; ?>&return_url=<?php echo urlencode($currentUrl); ?>">
                             <span>🛒</span>
                             <span>Thêm vào giỏ hàng</span>
@@ -163,8 +163,8 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
                             <div class="feature-text">Đảm bảo chất lượng</div>
                         </div>
                         <div class="feature">
-                            <div class="feature-icon">♻️</div>
-                            <div class="feature-text">Đổi trả trong 24h</div>
+                            <div class="feature-icon">🔥</div>
+                            <div class="feature-text">Món nóng hổi luôn giữ nhiệt</div>
                         </div>
                         <div class="feature">
                             <div class="feature-icon">⭐</div>
@@ -186,8 +186,22 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
                 </div>
             </div>
             -->
+
         </div>
     </div>
+
+    <div id="toastAddedDeals" class="toast-added">
+      Đã thêm vào giỏ hàng 🛒
+    </div> 
+
+
+
+
+<script src="../../assets/js/deals.js"> </script>
+
+
+
+
 
     <?php include __DIR__ . '/../includes/footer.php'; ?>
 
