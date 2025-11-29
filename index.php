@@ -18,7 +18,7 @@ if ($totalItems > 0) {
     <title>Trang chủ Ăn húp hội</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="assets/css/index.css">
-    <link rel="icon" type="image/jpg" sizes="16x16" href="../images/logo.jpg">
+   <link rel="icon" type="image/jpg" sizes="16x16" href="../images/logo.jpg">
 </head>
 <body>
     <?php include 'includes/header.php'?>
