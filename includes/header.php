@@ -34,9 +34,12 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 // đường dẫn resources
 $cssPath = "/assets/css/header.css";
 $jsPath  = "/assets/js/header.js";
-$logo    = "/images/logo.png";
-$avatarDefault = "images/default-avatar.png";
+$logo    = '/assets/img/logo.jpg';
+$logo_check = $_SERVER['DOCUMENT_ROOT'] . '/assets/img/logo.jpg';
+$avatarDefault = "/assets/img/default-avatar.jpg";
 ?>
+
+
 <!doctype html>
 <html lang="vi">
 <head>
@@ -53,8 +56,8 @@ $avatarDefault = "images/default-avatar.png";
     <!-- LEFT: logo -->
     <div class="header-left">
       <a href="/index.php" class="brand-link">
-        <?php if (file_exists($logo)): ?>
-          <img src="<?php echo htmlspecialchars($logo); ?>" alt="Logo" class="brand-logo">
+        <?php if (file_exists($logo_check)): ?>
+          <img src="<?php echo $logo; ?>" alt="Logo" class="brand-logo">
         <?php else: ?>
           <div class="brand-icon">🍲</div>
         <?php endif; ?>
