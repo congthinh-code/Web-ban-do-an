@@ -10,35 +10,107 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $uid = (int)$_SESSION['user_id'];
-$message = "";
 
-// Xử lý cập nhật
+// Hai message riêng: 1 cho profile, 1 cho đổi mật khẩu
+$messageProfile = "";
+$messagePass    = "";
+
+// ======= XỬ LÝ POST =======
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $hoten   = trim($_POST['Hoten'] ?? '');
-    $email   = trim($_POST['Email'] ?? '');
-    $phone   = trim($_POST['DienthoaiKH'] ?? '');
-    $address = trim($_POST['DiachiKH'] ?? '');
-    $dob     = trim($_POST['Ngaysinh'] ?? '');
+    $action = $_POST['action'] ?? '';
 
-    // Có thể thêm validate nữa (email hợp lệ, v.v.)
-    $sqlUpdate = "
-        UPDATE Khachhang
-        SET Hoten = ?, Email = ?, DienthoaiKH = ?, DiachiKH = ?, Ngaysinh = ?
-        WHERE MaKH = ?
-    ";
-    $stmt = $conn->prepare($sqlUpdate);
-    $stmt->bind_param("sssssi", $hoten, $email, $phone, $address, $dob, $uid);
+    // -------- ĐỔI MẬT KHẨU --------
+    if ($action === 'change_password') {
+        $oldPass = $_POST['old_password'] ?? '';
+        $newPass = $_POST['new_password'] ?? '';
+        $newPass2 = $_POST['new_password_confirm'] ?? '';
 
-    if ($stmt->execute()) {
-        $message = "Cập nhật hồ sơ thành công.";
-    } else {
-        $message = "Có lỗi khi cập nhật. Vui lòng thử lại.";
+        if ($oldPass === '' || $newPass === '' || $newPass2 === '') {
+            $messagePass = "Vui lòng nhập đầy đủ các trường.";
+        } elseif (strlen($newPass) < 6) {
+            $messagePass = "Mật khẩu mới phải từ 6 ký tự trở lên.";
+        } elseif ($newPass !== $newPass2) {
+            $messagePass = "Xác nhận mật khẩu mới không trùng khớp.";
+        } else {
+            // Lấy mật khẩu hiện tại từ DB
+            $sqlGetPass = "SELECT Matkhau FROM Khachhang WHERE MaKH = ? LIMIT 1";
+            if ($stmt = $conn->prepare($sqlGetPass)) {
+                $stmt->bind_param("i", $uid);
+                $stmt->execute();
+                $rs = $stmt->get_result();
+                if ($rs && $rs->num_rows > 0) {
+                    $row    = $rs->fetch_assoc();
+                    $stored = $row['Matkhau'];
+                    $ok     = false;
+
+                    // Nếu mật khẩu đã hash (bắt đầu bằng $)
+                    if (is_string($stored) && strlen($stored) > 0 && $stored[0] === '$') {
+                        if (password_verify($oldPass, $stored)) {
+                            $ok = true;
+                        }
+                    } else {
+                        // Mật khẩu cũ vẫn dạng plaintext (do INSERT mẫu)
+                        if ($oldPass === $stored) {
+                            $ok = true;
+                        }
+                    }
+
+                    if (!$ok) {
+                        $messagePass = "Mật khẩu hiện tại không đúng.";
+                    } else {
+                        // Mật khẩu cũ đúng → cập nhật mật khẩu mới (hash)
+                        $newHash = password_hash($newPass, PASSWORD_DEFAULT);
+                        $sqlUpdatePass = "UPDATE Khachhang SET Matkhau = ? WHERE MaKH = ?";
+                        if ($u = $conn->prepare($sqlUpdatePass)) {
+                            $u->bind_param("si", $newHash, $uid);
+                            if ($u->execute()) {
+                                $messagePass = "Đổi mật khẩu thành công.";
+                            } else {
+                                $messagePass = "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.";
+                            }
+                            $u->close();
+                        } else {
+                            $messagePass = "Lỗi hệ thống (prepare update password).";
+                        }
+                    }
+                } else {
+                    $messagePass = "Không tìm thấy tài khoản.";
+                }
+                $stmt->close();
+            } else {
+                $messagePass = "Lỗi hệ thống (prepare select password).";
+            }
+        }
+
+    // -------- CẬP NHẬT THÔNG TIN HỒ SƠ --------
+    } elseif ($action === 'update_profile') {
+        $hoten   = trim($_POST['Hoten'] ?? '');
+        $email   = trim($_POST['Email'] ?? '');
+        $phone   = trim($_POST['DienthoaiKH'] ?? '');
+        $address = trim($_POST['DiachiKH'] ?? '');
+        $dob     = trim($_POST['Ngaysinh'] ?? '');
+
+        // Có thể validate email ở đây nếu muốn
+        $sqlUpdate = "
+            UPDATE Khachhang
+            SET Hoten = ?, Email = ?, DienthoaiKH = ?, DiachiKH = ?, Ngaysinh = ?
+            WHERE MaKH = ?
+        ";
+        if ($stmt = $conn->prepare($sqlUpdate)) {
+            $stmt->bind_param("sssssi", $hoten, $email, $phone, $address, $dob, $uid);
+            if ($stmt->execute()) {
+                $messageProfile = "Cập nhật hồ sơ thành công.";
+            } else {
+                $messageProfile = "Có lỗi khi cập nhật. Vui lòng thử lại.";
+            }
+            $stmt->close();
+        } else {
+            $messageProfile = "Lỗi hệ thống (prepare update profile).";
+        }
     }
-
-    $stmt->close();
 }
 
-// Lấy thông tin user
+// ======= LẤY THÔNG TIN USER SAU KHI XỬ LÝ =======
 $sqlUser = "
 SELECT MaKH, Hoten, Taikhoan, Email, DienthoaiKH, DiachiKH, Ngaysinh
 FROM Khachhang
@@ -68,7 +140,6 @@ if (!$user) {
   <link rel="stylesheet" href="/assets/css/profile.css">
 </head>
 
-
 <body>
   <?php include __DIR__ . '/../includes/header.php'; ?>
 
@@ -80,14 +151,52 @@ if (!$user) {
       </div>
     </div>
 
+    <!-- CARD ĐỔI MẬT KHẨU (TRÊN CÙNG) -->
     <div class="card">
-      <?php if (!empty($message)): ?>
-        <div class="message <?php echo (strpos($message, 'thành công') !== false) ? 'ok' : 'error'; ?>">
-          <?php echo htmlspecialchars($message); ?>
+      <h2>Đổi mật khẩu</h2>
+      <p class="subtext">Để bảo mật, vui lòng nhập mật khẩu hiện tại trước khi đổi.</p>
+
+      <?php if (!empty($messagePass)): ?>
+        <div class="message <?php echo (strpos($messagePass, 'thành công') !== false) ? 'ok' : 'error'; ?>">
+          <?php echo htmlspecialchars($messagePass); ?>
         </div>
       <?php endif; ?>
 
       <form method="post" action="">
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="form-group">
+          <label>Mật khẩu hiện tại</label>
+          <input type="password" name="old_password" required>
+        </div>
+
+        <div class="form-group">
+          <label>Mật khẩu mới</label>
+          <input type="password" name="new_password" required>
+        </div>
+
+        <div class="form-group">
+          <label>Nhập lại mật khẩu mới</label>
+          <input type="password" name="new_password_confirm" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Đổi mật khẩu</button>
+      </form>
+    </div>
+
+    <!-- CARD THÔNG TIN HỒ SƠ -->
+    <div class="card">
+      <h2>Thông tin cá nhân</h2>
+
+      <?php if (!empty($messageProfile)): ?>
+        <div class="message <?php echo (strpos($messageProfile, 'thành công') !== false) ? 'ok' : 'error'; ?>">
+          <?php echo htmlspecialchars($messageProfile); ?>
+        </div>
+      <?php endif; ?>
+
+      <form method="post" action="">
+        <input type="hidden" name="action" value="update_profile">
+
         <div class="form-group">
           <label>Mã khách hàng</label>
           <input type="text" value="<?php echo (int)$user['MaKH']; ?>" readonly>
