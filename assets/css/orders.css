@@ -1,208 +1,166 @@
+    :root {
+      --primary: #f97316;
+      --primary-dark: #ea580c;
+      --primary-soft: #fff7ed;
+      --border-soft: #e5e7eb;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+      --bg-page: #f3f4f6;
+    }
 
-/* ===== MÀU CHỦ ĐẠO ===== */
-:root {
-  --primary: #f97316;      /* cam chính */
-  --primary-dark: #ea580c; /* cam đậm */
-  --primary-soft: #fff7ed; /* nền cam nhạt */
-  --border-soft: #e5e7eb;
-  --text-main: #111827;
-  --text-sub: #6b7280;
-  --bg-page: #f3f4f6;
-}
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+    }
 
-/* ===== PAGE ===== */
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  background: var(--bg-page);
-  color: var(--text-main);
-  padding-bottom: 80px; 
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+    .select-oder-status {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px auto 10px;
+      padding: 10px 12px;
+      flex-wrap: wrap;
+      background: #ffffff;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      max-width: 520px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
 
+    .select-oder-status a {
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-sub);
+      border: 1px solid transparent;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
 
-footer, .site-footer {
-  margin-top: auto !important;
-  position: static !important;
-}
+    .select-oder-status a:hover {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+    }
 
+    .select-oder-status a.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+    }
 
+    .list-oders {
+      max-width: 800px;
+      margin: 10px auto 30px;
+      padding: 0 12px 24px;
+    }
 
+    .oder {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-soft);
+      border-left: 4px solid var(--primary);
+      font-size: 14px;
+      color: var(--text-main);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
 
+    .img-food {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 0.75rem;
+      object-fit: cover;
+    }
 
-/* ===== THANH FILTER TRẠNG THÁI ===== */
-.select-oder-status {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: 20px auto 10px;
-  padding: 10px 12px;
-  flex-wrap: wrap;
-  background: #ffffff;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
-  max-width: 520px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
+    .card-food {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      min-width: 0;
+    }
 
-.select-oder-status a {
-  text-decoration: none;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-sub);
-  border: 1px solid transparent;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
+    .food {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
 
-/* hover chung */
-.select-oder-status a:hover {
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-}
+    .food-text {
+      display: block;
+      min-width: 0;
+    }
 
-/* nếu có gắn class="active" bên PHP thì màu cam nổi bật */
-.select-oder-status a.active {
-  background: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
-}
+    .food-text div:first-child {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
 
-/* ===== LIST ĐƠN HÀNG ===== */
-.list-oders {
-  max-width: 800px;
-  margin: 10px auto 30px;
-  padding: 0 12px 24px;
-}
+    .food-text div:last-child {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
 
-/* Mỗi đơn là 1 card */
-.oder {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  border: 1px solid var(--border-soft);
-  border-left: 4px solid var(--primary);
-  font-size: 14px;
-  color: var(--text-main);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    .oder-status {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #EE4D2D;
+      white-space: nowrap;
+    }
 
+    .total {
+      color: #EE4D2D;
+      font-weight: 600;
+    }
 
+    .detail-oder {
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-sub);
+      border: 1px solid var(--border-soft);
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      background: #f9fafb;
+    }
 
+    .detail-oder:hover {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      border-color: var(--primary);
+    }
 
+    .no-order {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 16px 12px;
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
 
-
-
-
-/* Gợi ý màu khác nhau theo class nếu muốn tuỳ biến:
-   Đang xử lý / Đang giao / Đã giao / Đã huỷ */
-
-.oder-status.processing {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.oder-status.shipping {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.oder-status.done {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.oder-status.cancelled {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-
-
-.img-food{
-   width: 4rem;
-   height: 4rem;
-}
-
-.card-food{
-  display: flex;
-  gap: 30px;
-  align-items: center;
-
-}
-
-
-.food{
-  display: flex;
-  gap: 10px;
-}
-
-
-
-.food-text{
-  display: block;
-}
-
-.detail-oder{
-  text-decoration: none;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-sub);
-  border: 1px solid transparent;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-}
-
-.detail-oder:hover{
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-}
-
-
-
-/* Nếu sau này mày echo thêm trạng thái, dùng span cho đẹp: */
-.oder-status {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-  color: #EE4D2D;
-}
-
-
-
-.total{
- color: #EE4D2D;
-}
-
-
-
-/* Mobile tối ưu 1 tí */
-@media (max-width: 600px) {
-  .oder {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .card-food{
-    align-items: flex-start;
-    gap: 8rem;
-  }
-
-}
-
-
-
+    @media (max-width: 600px) {
+      .oder {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .card-food {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
