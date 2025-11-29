@@ -44,6 +44,9 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
   <link rel="stylesheet" href="/assets/css/deals.css">
 </head>
 
+
+
+
 <body>
   <?php include __DIR__ . '/../includes/header.php'; ?>
 
@@ -125,7 +128,7 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
                 <!-- Nút thêm giỏ hàng: chặn click lan lên card -->
                 <a
                   href="/pages/cart.php?add=<?php echo (int)$p['Mamon']; ?>&return_url=<?php echo urlencode($currentUrl); ?>"
-                  class="btn-order"
+                  class="btn-order btn-add-cart"
                   onclick="event.stopPropagation();">
                   Thêm giỏ
                   <span class="icon">🛒</span>
@@ -138,6 +141,18 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
       </div>
     <?php endif; ?>
   </div>
+
+
+    <div id="toastAddedDeals" class="toast-added">
+      Đã thêm vào giỏ hàng 🛒
+    </div> 
+
+
+
+<script src="../../assets/js/deals.js"> </script>
+
+
+
 
   <?php include __DIR__ . '/../includes/footer.php'; ?>
 </body>
