@@ -81,7 +81,7 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
           <!-- Click cả card -> sang trang chi tiết khuyến mãi -->
           <div
             class="promo-card"
-            onclick="window.location.href='detaildeals.php?mamon=<?php echo (int)$p['Mamon']; ?>'">
+            onclick="window.location.href='chitietmonan.php?mamon=<?php echo (int)$p['Mamon']; ?>'">
             
             <div class="promo-img-wrap">
               <img src="<?php echo "../../" . htmlspecialchars($p['Anh'] ?? 'assets/img/default.jpg'); ?>"
