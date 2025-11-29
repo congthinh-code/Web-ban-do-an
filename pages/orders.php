@@ -22,6 +22,7 @@ SELECT
     d.TinhtrangDH,
     d.Ngaydat,
     d.Ngaygiao,
+    m.Tenmon,
     SUM(c.Soluong * c.Dongia)       AS TongTien,
     SUM(c.Soluong)                  AS TongSoLuong,
     MIN(m.Anh)                      AS AnhDaiDien
@@ -90,6 +91,7 @@ if ($rs) {
                     </div>
                     <div class="food-text">
                         <div>Đơn #<?php echo (int)$rdh['MaDH']; ?></div>
+                        <div> <?php echo $rdh['Tenmon'] . "..."; ?></div>
                         <div><?php echo (int)$rdh['TongSoLuong']; ?> món</div>
                     </div>
                 </div>
@@ -127,7 +129,5 @@ if ($rs) {
     </div>
 
     <?php include __DIR__ . '/../includes/footer.php'; ?>
-
 </body>
 </html>
-
