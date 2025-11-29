@@ -1,109 +1,82 @@
-const prices = {
-            'S': { current: 35000, original: 50000 },
-            'M': { current: 45000, original: 65000 },
-            'L': { current: 55000, original: 75000 }
-        };
+    document.addEventListener('DOMContentLoaded', function () {
+      const qtySpan  = document.getElementById('quantityValue');
+      const btnMinus = document.getElementById('decreaseBtn');
+      const btnPlus  = document.getElementById('increaseBtn');
+      const addBtn   = document.querySelector('.add-to-cart-btn');
+      const MIN_QTY = 1;
+      const MAX_QTY = 99;
 
-        let currentSize = 'M';
+      function getQty() {
+        let v = parseInt(qtySpan.textContent, 10);
+        if (isNaN(v) || v < MIN_QTY) v = MIN_QTY;
+        if (v > MAX_QTY) v = MAX_QTY;
+        qtySpan.textContent = v;
+        return v;
+      }
 
-        // Format currency
-        function formatCurrency(amount) {
-            return amount.toLocaleString('vi-VN') + '₫';
-        }
-
-        // Update price display
-        function updatePrice(size) {
-            const priceData = prices[size];
-            document.querySelector('.current-price').textContent = formatCurrency(priceData.current);
-            document.querySelector('.original-price').textContent = formatCurrency(priceData.original);
-            
-            // Calculate discount percentage
-            const discount = Math.round((1 - priceData.current / priceData.original) * 100);
-            document.querySelector('.discount-badge').textContent = `-${discount}%`;
-        }
-
-        // Image gallery
-        const images = [
-            'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600',
-            'https://images.unsplash.com/photo-1608198399988-841b2d9e515b?w=600',
-            'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600',
-            'https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=600'
-        ];
-
-        const mainImage = document.getElementById('mainImage');
-        const thumbnails = document.querySelectorAll('.thumbnail');
-
-        thumbnails.forEach((thumb, index) => {
-            thumb.addEventListener('click', () => {
-                mainImage.src = images[index];
-                thumbnails.forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-            });
+      if (btnMinus) {
+        btnMinus.addEventListener('click', function () {
+          let v = getQty();
+          if (v > MIN_QTY) {
+            qtySpan.textContent = v - 1;
+          }
         });
+      }
 
-        // Quantity controls
-        let quantity = 1;
-        const quantityValue = document.getElementById('quantityValue');
-        const decreaseBtn = document.getElementById('decreaseBtn');
-        const increaseBtn = document.getElementById('increaseBtn');
+      if (btnPlus) {
+        btnPlus.addEventListener('click', function () {
+          let v = getQty();
+          if (v < MAX_QTY) {
+            qtySpan.textContent = v + 1;
+          }
+        });
+      }
 
-        decreaseBtn.addEventListener('click', () => {
-            if (quantity > 1) {
-                quantity--;
-                quantityValue.textContent = quantity;
+      // Gallery đổi ảnh theo thumbnail
+      const mainImage = document.getElementById('mainImage');
+      const thumbs = document.querySelectorAll('.thumbnail');
+      if (mainImage && thumbs.length > 0) {
+        thumbs.forEach(thumb => {
+          thumb.addEventListener('click', function () {
+            thumbs.forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+            const img = thumb.querySelector('img');
+            if (img) {
+              mainImage.src = img.src;
             }
+          });
         });
+      }
 
-        increaseBtn.addEventListener('click', () => {
-            quantity++;
-            quantityValue.textContent = quantity;
+      // Nút yêu thích
+      const favBtn = document.getElementById('favoriteBtn');
+      if (favBtn) {
+        favBtn.addEventListener('click', function () {
+          favBtn.classList.toggle('active');
         });
+      }
 
-        // Size selector
-        const sizeButtons = document.querySelectorAll('.size-btn');
-        sizeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const size = btn.dataset.size;
-                currentSize = size;
-                
-                sizeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Update price when size changes
-                updatePrice(size);
-            });
+      // Thêm giỏ: nối qty vào URL + hiện toast
+      if (addBtn) {
+        addBtn.addEventListener('click', function (e) {
+          const baseHref = addBtn.getAttribute('data-base-href') || addBtn.getAttribute('href');
+          if (!baseHref) return;
+
+          const qty = getQty();
+          const url = baseHref + '&qty=' + encodeURIComponent(qty);
+
+          const toast = document.getElementById('toastAddedDeals');
+          if (toast) {
+            e.preventDefault();
+            toast.classList.add('show');
+            setTimeout(() => {
+              toast.classList.remove('show');
+              window.location.href = url;
+            }, 700);
+          } else {
+            // fallback: chỉnh href rồi cho browser đi tiếp
+            addBtn.setAttribute('href', url);
+          }
         });
-
-        // Favorite button
-        const favoriteBtn = document.getElementById('favoriteBtn');
-        favoriteBtn.addEventListener('click', () => {
-            favoriteBtn.classList.toggle('active');
-        });
-
-        // Tab switching (simplified for single tab)
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabName = btn.dataset.tab;
-                
-                tabButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                    if (content.id === tabName) {
-                        content.classList.add('active');
-                    }
-                });
-            });
-        });
-
-
-        // Add to cart
-        const addToCartBtn = document.querySelector('.add-to-cart-btn');
-        addToCartBtn.addEventListener('click', () => {
-            const totalPrice = prices[currentSize].current * quantity;
-            alert(`Đã thêm ${quantity} sản phẩm (Size ${currentSize}) vào giỏ hàng!\nTổng tiền: ${formatCurrency(totalPrice)}`);
-        });
+      }
+    });
