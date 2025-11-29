@@ -83,6 +83,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+
 }
 .search-input {
   padding: 0.4rem 0.8rem;
@@ -91,12 +92,14 @@ body {
   outline: none;
   width: 180px;
   transition: width 0.3s;
+  padding-right: 45px; 
 }
 .search-input:focus {
   width: 240px;
+
 }
 .search-btn {
-  margin-left: -35px;
+  margin-left: 10rem;
   background: none;
   border: none;
   cursor: pointer;

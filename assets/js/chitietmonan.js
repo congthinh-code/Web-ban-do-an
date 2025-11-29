@@ -100,6 +100,7 @@ const prices = {
             });
         });
 
+
         // Add to cart
         const addToCartBtn = document.querySelector('.add-to-cart-btn');
         addToCartBtn.addEventListener('click', () => {
