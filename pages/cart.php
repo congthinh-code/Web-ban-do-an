@@ -3,7 +3,7 @@ session_start();
 include_once '../database/db.php'; // phải tạo $conn (MySQLi)
 require_once __DIR__ . '/../functions/functions.php';
 
-// ----- Xử lý thêm sản phẩm vào giỏ từ ?add=ID -----
+// ----- Xử lý thêm sản phẩm vào giỏ từ ?add=ID&qty=?? -----
 if (isset($_GET['add'])) {
     $prod_id = intval($_GET['add']);
 
@@ -15,8 +15,15 @@ if (isset($_GET['add'])) {
         exit;
     }
 
+    // Lấy số lượng từ query (nếu có), mặc định = 1
+    $qty = isset($_GET['qty']) ? intval($_GET['qty']) : 1;
+    if ($qty < 1) $qty = 1;
+    if ($qty > 99) $qty = 99;
+
     // Lấy thông tin sản phẩm từ db
-    $sql = "SELECT Mamon AS id, Tenmon AS name, Giaban AS price, Anh AS image FROM Monan WHERE Mamon = ?";
+    $sql = "SELECT Mamon AS id, Tenmon AS name, Giaban AS price, Anh AS image 
+            FROM Monan 
+            WHERE Mamon = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $prod_id);
         $stmt->execute();
@@ -24,17 +31,21 @@ if (isset($_GET['add'])) {
         if ($res && $res->num_rows > 0) {
             $product = $res->fetch_assoc();
 
-            if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+            if (!isset($_SESSION['cart'])) {
+                $_SESSION['cart'] = [];
+            }
 
             if (isset($_SESSION['cart'][$prod_id])) {
-                $_SESSION['cart'][$prod_id]['qty'] += 1;
+                // Nếu đã có thì cộng thêm số lượng
+                $_SESSION['cart'][$prod_id]['qty'] += $qty;
             } else {
+                // Nếu chưa có thì thêm mới với qty vừa chọn
                 $_SESSION['cart'][$prod_id] = [
-                    'id' => $product['id'],
-                    'name' => $product['name'],
+                    'id'    => $product['id'],
+                    'name'  => $product['name'],
                     'price' => $product['price'],
                     'image' => $product['image'],
-                    'qty' => 1
+                    'qty'   => $qty
                 ];
             }
         }
@@ -81,12 +92,13 @@ if (isset($_GET['decrease'])) {
     exit;
 }
 
-// ----- Cập nhật số lượng -----
+// ----- Cập nhật số lượng từ form -----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart'])) {
     foreach ($_POST['qty'] as $id => $q) {
         $id = intval($id);
-        $q = intval($q);
+        $q  = intval($q);
         if ($q < 1) $q = 1;
+        if ($q > 99) $q = 99;
         if (isset($_SESSION['cart'][$id])) {
             $_SESSION['cart'][$id]['qty'] = $q;
         }
@@ -96,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart'])) {
 }
 
 // ----- Tính tổng -----
-$cartItems = $_SESSION['cart'] ?? [];
+$cartItems  = $_SESSION['cart'] ?? [];
 $totalPrice = 0;
 foreach ($cartItems as $item) {
     $totalPrice += $item['price'] * $item['qty'];
@@ -106,7 +118,9 @@ foreach ($cartItems as $item) {
 $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
     $uid = intval($_SESSION['user_id']);
-    $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Khachhang WHERE MaKH = ?";
+    $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar 
+            FROM Khachhang 
+            WHERE MaKH = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $uid);
         $stmt->execute();
@@ -117,7 +131,6 @@ if (!empty($_SESSION['user_id']) && isset($conn)) {
         $stmt->close();
     }
 }
-
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -151,7 +164,11 @@ if (!empty($_SESSION['user_id']) && isset($conn)) {
                             <td><?php echo number_format($item['price']); ?>₫</td>
                             <td class="qty-control">
                                 <a href="cart.php?decrease=<?php echo $item['id']; ?>" class="qty-btn">-</a>
-                                <input type="number" name="qty[<?php echo $item['id']; ?>]" value="<?php echo $item['qty']; ?>" min="1">
+                                <input type="number"
+                                       name="qty[<?php echo $item['id']; ?>]"
+                                       value="<?php echo $item['qty']; ?>"
+                                       min="1"
+                                       max="99">
                                 <a href="cart.php?increase=<?php echo $item['id']; ?>" class="qty-btn">+</a>
                             </td>
                             <td><?php echo number_format($item['price'] * $item['qty']); ?>₫</td>
