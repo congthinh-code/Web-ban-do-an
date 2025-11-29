@@ -59,7 +59,7 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
         <?php if (file_exists($logo_check)): ?>
           <img src="<?php echo $logo; ?>" alt="Logo" class="brand-logo">
         <?php else: ?>
-          <div class="brand-icon">🍲</div>
+          <div class="brand-icon">🍜</div>
         <?php endif; ?>
         <div class="brand-text">
           <span class="brand-name">Ăn Húp Hội</span>
@@ -156,3 +156,4 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
 <script src="<?php echo htmlspecialchars($jsPath); ?>"></script>
 </body>
 </html>
+
