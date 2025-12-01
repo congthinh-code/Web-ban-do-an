@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $messagePass = "Xác nhận mật khẩu mới không trùng khớp.";
         } else {
             // Lấy mật khẩu hiện tại từ DB
-            $sqlGetPass = "SELECT Matkhau FROM Khachhang WHERE MaKH = ? LIMIT 1";
+            $sqlGetPass = "SELECT Matkhau FROM Users WHERE MaKH = ? LIMIT 1";
             if ($stmt = $conn->prepare($sqlGetPass)) {
                 $stmt->bind_param("i", $uid);
                 $stmt->execute();
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         // Mật khẩu cũ đúng → cập nhật mật khẩu mới (hash)
                         $newHash = password_hash($newPass, PASSWORD_DEFAULT);
-                        $sqlUpdatePass = "UPDATE Khachhang SET Matkhau = ? WHERE MaKH = ?";
+                        $sqlUpdatePass = "UPDATE Users SET Matkhau = ? WHERE MaKH = ?";
                         if ($u = $conn->prepare($sqlUpdatePass)) {
                             $u->bind_param("si", $newHash, $uid);
                             if ($u->execute()) {
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Có thể validate email ở đây nếu muốn
         $sqlUpdate = "
-            UPDATE Khachhang
+            UPDATE Users
             SET Hoten = ?, Email = ?, DienthoaiKH = ?, DiachiKH = ?, Ngaysinh = ?
             WHERE MaKH = ?
         ";
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ======= LẤY THÔNG TIN USER SAU KHI XỬ LÝ =======
 $sqlUser = "
 SELECT MaKH, Hoten, Taikhoan, Email, DienthoaiKH, DiachiKH, Ngaysinh
-FROM Khachhang
+FROM Users
 WHERE MaKH = ?
 LIMIT 1
 ";
