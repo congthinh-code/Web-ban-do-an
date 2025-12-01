@@ -6,7 +6,7 @@ require_once __DIR__ . '/../functions/functions.php';
 
 // Bắt buộc đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -55,6 +55,8 @@ if ($rs) {
 <body>
     <?php include __DIR__ . '/../includes/header.php'; ?>
 
+    
+<main>
     <!-- Filter trạng thái -->
     <div class="select-oder-status">
         <a href="?type=0" class="<?php echo ($type === 0 ? 'active' : ''); ?>">Tất cả</a>
@@ -127,7 +129,9 @@ if ($rs) {
         <div class="no-order">Không có đơn hàng</div>
     <?php endif; ?>
     </div>
-
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
+  </main>
+    
+            <?php include __DIR__ . '/../includes/footer.php'; ?>
 </body>
+    
 </html>
