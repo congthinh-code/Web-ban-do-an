@@ -119,7 +119,7 @@ $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
     $uid = intval($_SESSION['user_id']);
     $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar 
-            FROM Khachhang 
+            FROM Users 
             WHERE MaKH = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $uid);
