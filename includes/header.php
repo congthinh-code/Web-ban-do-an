@@ -7,8 +7,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
   $uid = intval($_SESSION['user_id']);
-  // Lấy thông tin từ Khachhang (sử dụng alias để tương thích với code hiện có)
-  $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Khachhang WHERE MaKH = ?";
+  // Lấy thông tin từ Users (sử dụng alias để tương thích với code hiện có)
+  $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Users WHERE MaKH = ?";
   if ($stmt = $conn->prepare($sql)) {
     $stmt->bind_param("i", $uid);
     $stmt->execute();
@@ -156,4 +156,3 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
 <script src="<?php echo htmlspecialchars($jsPath); ?>"></script>
 </body>
 </html>
-
