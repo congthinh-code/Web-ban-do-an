@@ -17,10 +17,10 @@ function sendOtpMail(string $toEmail, string $toName, string $otp): bool
 
     try {
         $mail->isSMTP();
-        $mail->Host       = 'in-v3.mailjet.com';
+        $mail->Host       = 'smtp.gmail.com'; //Server SMTP của Gmail
         $mail->SMTPAuth   = true;
-        $mail->Username   = '56501faca5189cb40422ee9b64764a4a';  // API Key
-        $mail->Password   = '9611af9c8450bc6da5cc530639267d38';  // Secret Key
+        $mail->Username   = 'afoodahp@gmail.com';  // API Key
+        $mail->Password   = 'tloj vbgr rihk scjh';  // Secret Key
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
