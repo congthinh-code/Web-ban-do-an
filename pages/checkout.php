@@ -30,7 +30,7 @@ foreach ($cartItems as $item) {
 $customer = null;
 if (isset($conn)) {
     $sql = "SELECT MaKH AS MaKH, Hoten, Email, DienthoaiKH, DiachiKH 
-            FROM Khachhang 
+            FROM Users 
             WHERE MaKH = ? 
             LIMIT 1";
     if ($stmt = $conn->prepare($sql)) {
