@@ -26,7 +26,7 @@ function generateUniqueUsername(mysqli $conn, string $name): string {
     $username = $base;
     $i = 1;
 
-    $sql = "SELECT 1 FROM Khachhang WHERE Taikhoan = ? LIMIT 1";
+    $sql = "SELECT 1 FROM Users WHERE Taikhoan = ? LIMIT 1";
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         // nếu lỗi prepare thì trả đại base
@@ -64,8 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'register') {
     if (strlen($password) < 6) $errors[] = 'Mật khẩu phải ít nhất 6 ký tự.';
 
     if (empty($errors)) {
-        // Kiểm tra email đã tồn tại trong Khachhang
-        $sql = "SELECT MaKH FROM Khachhang WHERE Email = ? LIMIT 1";
+        // Kiểm tra email đã tồn tại trong Users
+        $sql = "SELECT MaKH FROM Users WHERE Email = ? LIMIT 1";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('s', $email);
             $stmt->execute();
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'verify_register') {
             $errors[] = 'Mã OTP không đúng.';
         } else {
             // OTP OK → insert DB
-            $ins = "INSERT INTO Khachhang (Hoten, Taikhoan, Matkhau, Email)
+            $ins = "INSERT INTO Users (Hoten, Taikhoan, Matkhau, Email)
                     VALUES (?, ?, ?, ?)";
             if ($stmt = $conn->prepare($ins)) {
                 $stmt->bind_param(
@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
 
     if (empty($errors)) {
         $sql = "SELECT MaKH, Hoten, Matkhau
-                FROM Khachhang
+                FROM Users
                 WHERE Email = ? OR Taikhoan = ?
                 LIMIT 1";
         if ($stmt = $conn->prepare($sql)) {
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
                     if ($password === $stored) {
                         $ok = true;
                         $newHash = password_hash($password, PASSWORD_DEFAULT);
-                        $upd = $conn->prepare("UPDATE Khachhang SET Matkhau = ? WHERE MaKH = ?");
+                        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE MaKH = ?");
                         if ($upd) {
                             $upd->bind_param('si', $newHash, $row['MaKH']);
                             $upd->execute();
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'forgot') {
     if (!filter_var($emailForgot, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Vui lòng nhập email hợp lệ để khôi phục mật khẩu.';
     } else {
-        $sql = "SELECT MaKH, Hoten FROM Khachhang WHERE Email = ? LIMIT 1";
+        $sql = "SELECT MaKH, Hoten FROM Users WHERE Email = ? LIMIT 1";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('s', $emailForgot);
             $stmt->execute();
@@ -316,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reset_password') {
         $data    = $_SESSION['otp_forgot'];
         $newHash = password_hash($newPass, PASSWORD_DEFAULT);
 
-        $upd = $conn->prepare("UPDATE Khachhang SET Matkhau = ? WHERE MaKH = ?");
+        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE MaKH = ?");
         if ($upd) {
             $upd->bind_param('si', $newHash, $data['MaKH']);
             if ($upd->execute()) {
