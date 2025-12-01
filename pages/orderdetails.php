@@ -56,7 +56,7 @@ SELECT
     kh.DienthoaiKH,
     kh.DiachiKH
 FROM Donhang d
-JOIN Khachhang kh ON d.MaKH = kh.MaKH
+JOIN Users kh ON d.MaKH = kh.MaKH
 WHERE d.MaDH = ? AND d.MaKH = ?
 LIMIT 1
 ";
