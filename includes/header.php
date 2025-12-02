@@ -3,6 +3,16 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 //include_once "webbandoan.php"; // phải trả về $conn (MySQLi)
 
+if( isset($_SESSION['role'])){
+    $role = $_SESSION['role'];
+}
+else{
+    $role = null;
+}
+
+
+
+
 // ----- Lấy thông tin user -----
 $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
@@ -75,15 +85,19 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
           <li><a href="/index.php">Trang chủ</a></li>
           <li><a href="/pages/menu.php">Thực đơn</a></li>
           <li><a href="/pages/deals.php">Khuyến mãi</a></li>
-          <li><a href="/pages/news.php">Tin tức</a></li>
         </ul>
       </nav>
 
       <div class="search-wrap">
+          
+  
+               
         <input id="header-search" class="search-input" type="search" placeholder="Tìm món,..." aria-label="Tìm kiếm">
         <button id="search-btn" class="search-btn" aria-label="Tìm">🔍</button>
+          
         <ul id="search-suggestions" class="search-suggestions" role="listbox"></ul>
       </div>
+        
     </div>
 
     <!-- RIGHT: actions -->
@@ -104,16 +118,29 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
       <!-- account -->
       <div class="action-item dropdown" id="accountWrap">
         <?php if ($userInfo): ?>
-          <button id="accountBtn" class="account-btn" aria-haspopup="true" aria-expanded="false">
+          	<button id="accountBtn" class="account-btn" aria-haspopup="true" aria-expanded="false">
             <img class="avatar" src="<?php echo (!empty($userInfo['avatar']) && file_exists($userInfo['avatar'])) ? htmlspecialchars($userInfo['avatar']) : $avatarDefault; ?>" alt="avatar">
-            <span class="username"><?php echo htmlspecialchars($userInfo['username']); ?></span>
+            
+            <div>
+              <span class="username"><?php echo htmlspecialchars($userInfo['username']); ?></span>
+             	<?php 
+                    if( isset($role) and $role = "admin"){
+                        echo ">" . $role . "<"; 
+                    }                 
+               ?>               
+            </div>
+              
           </button>
 
           <div class="dropdown-panel" id="accountPanel" role="menu" aria-hidden="true">
+            <?php if( isset($role) and $role = "admin"): ?>
+              <a class="dropdown-item" href="/Admin/orders.php">Admin</a>
+    		<?php endif; ?>
             <a class="dropdown-item" href="/pages/profile.php">Hồ sơ</a>
             <a class="dropdown-item" href="/pages/orders.php">Đơn hàng</a>
             <a class="dropdown-item" href="/pages/auth/logout.php">Đăng xuất</a>
           </div>
+          
         <?php else: ?>
           <a href="/pages/login.php" class="btn btn-primary">Đăng nhập</a>
         <?php endif; ?>
