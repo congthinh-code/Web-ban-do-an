@@ -5,11 +5,12 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 if( isset($_SESSION['role'])){
     $role = $_SESSION['role'];
+    echo $_SESSION['role'];
 }
 else{
     $role = null;
 }
-
+ 
 
 
 
@@ -124,7 +125,7 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
             <div>
               <span class="username"><?php echo htmlspecialchars($userInfo['username']); ?></span>
              	<?php 
-                    if( isset($role) and $role = "admin"){
+                    if($role == "admin"){
                         echo ">" . $role . "<"; 
                     }                 
                ?>               
@@ -133,7 +134,7 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
           </button>
 
           <div class="dropdown-panel" id="accountPanel" role="menu" aria-hidden="true">
-            <?php if( isset($role) and $role = "admin"): ?>
+            <?php if( isset($role) and $role == "admin"): ?>
               <a class="dropdown-item" href="/Admin/orders.php">Admin</a>
     		<?php endif; ?>
             <a class="dropdown-item" href="/pages/profile.php">Hồ sơ</a>
