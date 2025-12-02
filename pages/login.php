@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
     if ($password === '')    $errors[] = 'Vui lòng nhập mật khẩu.';
 
     if (empty($errors)) {
-        $sql = "SELECT MaKH, Hoten, Matkhau
+        $sql = "SELECT *
                 FROM Users
                 WHERE Email = ? OR Taikhoan = ?
                 LIMIT 1";
@@ -227,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
                 if ($ok) {
                     $_SESSION['user_id']  = $row['MaKH'];
                     $_SESSION['username'] = $row['Hoten'];
+                    $_SESSION['role'] = $row['Role'];
                     $ret = $_GET['return_url'] ?? '/index.php';
                     header('Location: ' . $ret);
                     exit;
