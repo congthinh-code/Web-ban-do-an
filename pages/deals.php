@@ -50,6 +50,8 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
 <body>
   <?php include __DIR__ . '/../includes/header.php'; ?>
 
+    
+ <main>
   <div class="page-wrapper">
     <div class="page-header">
       <h1 class="page-title">
@@ -147,7 +149,7 @@ $currentUrl = $_SERVER['REQUEST_URI'] ?? '/pages/deals.php';
       Đã thêm vào giỏ hàng 🛒
     </div> 
 
-
+</main>
 
 <script src="../../assets/js/deals.js"> </script>
 
