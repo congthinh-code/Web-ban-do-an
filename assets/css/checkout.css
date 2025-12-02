@@ -14,6 +14,20 @@
           background: var(--bg-page);
           color: var(--text-main);
         }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
 
         .checkout-container {
           max-width: 900px;
@@ -210,6 +224,42 @@
           border: 1px solid #fed7aa;
         }
 
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(249,115,22,0.15);
+    }
+
+    .form-group input[readonly] {
+      background: #f9fafb;
+      color: var(--text-sub);
+    }    
+
         .back-link:hover {
           background: var(--primary-soft);
         }
+
+
+.btn-save {
+    background-color: #10b981;
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+
