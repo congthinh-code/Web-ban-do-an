@@ -45,11 +45,26 @@ if (isset($conn)) {
 }
 
 if (!$customer) {
-    // Không tìm thấy user trong DB → logout & yêu cầu đăng nhập lại
-    session_destroy();
-    header("Location: /pages/login.php");
-    exit;
+    echo " Không tìm thấy user yêu cầu đăng nhập lại!";
 }
+
+if(isset($_POST['DienthoaiKH']) || isset($_POST['DiachiKH'])){
+    $dienthoai = $_POST['DienthoaiKH'];
+    $diachi = $_POST['DiachiKH'];
+    if (isset($conn)) {
+    
+        $sql = "UPDATE Users SET DienthoaiKH = ?, DiachiKH = ? WHERE MaKH = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ssi",$dienthoai, $diachi, $uid);
+            $stmt->execute();
+            $stmt->close();
+        }
+     
+	}
+    header("location: checkout.php");
+   
+}
+
 
 
 $errorMsg = "";
@@ -131,8 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     <link rel="stylesheet" href="/assets/css/checkout.css">
 </head>
 
+    
+    
+    
 <body>
     <?php include '../includes/header.php'; ?>
+
 
     <div class="checkout-container">
         <a href="cart.php" class="back-link">← Quay lại giỏ hàng</a>
@@ -161,22 +180,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     <div><strong>Địa chỉ:</strong> <?php echo htmlspecialchars($customer['DiachiKH'] ?? ''); ?></div>
                 </div>
 
+         
+                
                 <?php if (empty($customer['DienthoaiKH']) || empty($customer['DiachiKH'])): ?>
+                	<form id="formuser" action="" method="post">
+                            <div class="form-group">
+                              <label>Số điện thoại</label>
+                              <input type="text" name="DienthoaiKH"
+                                     value="<?php echo htmlspecialchars($user['DienthoaiKH'] ?? ''); ?>">
+                            </div>
 
-                    <div class="warning">
-                        ⚠ Bạn chưa cập nhật đầy đủ số điện thoại hoặc địa chỉ.  
-                        Vui lòng vào <a href="profile.php">Hồ sơ cá nhân</a> để bổ sung, tránh giao hàng thất bại.
-                    </div>
-
+                            <div class="form-group align-center">
+                              <label>Địa chỉ</label>
+                              <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($user['DiachiKH'] ?? ''); ?></textarea>
+                            </div>
+                    		<button id="btnSave" class="btn-save" type="submit">Lưu</button>
+                	</form>
+                
                 <?php else: ?>
+                <button id="updateUser" class="btn-save">Cập nhật</button>         	
+                <form id="formuserr" style="display: none;" action="" method="post">
+                            <div class="form-group">
+                              <label>Số điện thoại</label>
+                              <input type="text" name="DienthoaiKH"
+                                     value="<?php echo htmlspecialchars($user['DienthoaiKH'] ?? ''); ?>">
+                            </div>
 
-                    <div class="warning">
-                        Để cập nhật đầy đủ số điện thoại hoặc địa chỉ.  
-                        Vui lòng vào <a href="profile.php">Hồ sơ cá nhân</a> để bổ sung, tránh giao hàng thất bại.
-                    </div>                   
-                    
+                            <div class="form-group align-center">
+                              <label>Địa chỉ</label>
+                              <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($user['DiachiKH'] ?? ''); ?></textarea>
+                            </div>
+                    		<button id="btnSave" class="btn-save" type="submit">Lưu</button>
+                	</form>
                 <?php endif; ?>
 
+                
+                
+                
                 <div class="cod-box">
                     <span class="icon">💰</span>
                     <div>
@@ -246,9 +286,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             </div>
         </div>
     </div>
+  
 
 
-
+   <script src="../../assets/js/checkout.js"></script>  
+    
     <?php include '../includes/footer.php'; ?>
 </body>
+    
+    
+    
+    
 </html>
