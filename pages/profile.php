@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $messagePass = "Xác nhận mật khẩu mới không trùng khớp.";
         } else {
             // Lấy mật khẩu hiện tại từ DB
-            $sqlGetPass = "SELECT Matkhau FROM Users WHERE MaKH = ? LIMIT 1";
+            $sqlGetPass = "SELECT Matkhau FROM Users WHERE UID = ? LIMIT 1";
             if ($stmt = $conn->prepare($sqlGetPass)) {
                 $stmt->bind_param("i", $uid);
                 $stmt->execute();
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         // Mật khẩu cũ đúng → cập nhật mật khẩu mới (hash)
                         $newHash = password_hash($newPass, PASSWORD_DEFAULT);
-                        $sqlUpdatePass = "UPDATE Users SET Matkhau = ? WHERE MaKH = ?";
+                        $sqlUpdatePass = "UPDATE Users SET Matkhau = ? WHERE UID = ?";
                         if ($u = $conn->prepare($sqlUpdatePass)) {
                             $u->bind_param("si", $newHash, $uid);
                             if ($u->execute()) {
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sqlUpdate = "
             UPDATE Users
             SET Hoten = ?, Email = ?, DienthoaiKH = ?, DiachiKH = ?, Ngaysinh = ?
-            WHERE MaKH = ?
+            WHERE UID = ?
         ";
         if ($stmt = $conn->prepare($sqlUpdate)) {
             $stmt->bind_param("sssssi", $hoten, $email, $phone, $address, $dob, $uid);
@@ -112,9 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ======= LẤY THÔNG TIN USER SAU KHI XỬ LÝ =======
 $sqlUser = "
-SELECT MaKH, Hoten, Taikhoan, Email, DienthoaiKH, DiachiKH, Ngaysinh
+SELECT UID, Hoten, Taikhoan, Email, DienthoaiKH, DiachiKH, Ngaysinh
 FROM Users
-WHERE MaKH = ?
+WHERE UID = ?
 LIMIT 1
 ";
 $stmt2 = $conn->prepare($sqlUser);
@@ -199,7 +199,7 @@ if (!$user) {
 
         <div class="form-group">
           <label>Mã khách hàng</label>
-          <input type="text" value="<?php echo (int)$user['MaKH']; ?>" readonly>
+          <input type="text" value="<?php echo (int)$user['UID']; ?>" readonly>
         </div>
 
         <div class="form-group">
