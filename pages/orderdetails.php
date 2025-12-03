@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order'])) {
     $sqlCancel = "
         UPDATE Donhang
         SET TinhtrangDH = 'Đã hủy'
-        WHERE MaDH = ? AND MaKH = ? AND TinhtrangDH = 'Đang xử lý'
+        WHERE MaDH = ? AND UID = ? AND TinhtrangDH = 'Đang xử lý'
         LIMIT 1
     ";
     if ($stmtC = $conn->prepare($sqlCancel)) {
@@ -52,12 +52,12 @@ SELECT
     d.TinhtrangDH,
     d.Ngaydat,
     d.Ngaygiao,
-    kh.Hoten,
-    kh.DienthoaiKH,
-    kh.DiachiKH
+    u.Hoten,
+    u.DienthoaiKH,
+    u.DiachiKH
 FROM Donhang d
-JOIN Users kh ON d.MaKH = kh.MaKH
-WHERE d.MaDH = ? AND d.MaKH = ?
+JOIN Users u ON d.UID = u.UID
+WHERE d.MaDH = ? AND d.UID = ?
 LIMIT 1
 ";
 
