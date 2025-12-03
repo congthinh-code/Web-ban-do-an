@@ -29,9 +29,9 @@ foreach ($cartItems as $item) {
 // Lấy thông tin user (khách hàng)
 $customer = null;
 if (isset($conn)) {
-    $sql = "SELECT MaKH AS MaKH, Hoten, Email, DienthoaiKH, DiachiKH 
+    $sql = "SELECT UID AS UID, Hoten, Email, DienthoaiKH, DiachiKH 
             FROM Users 
-            WHERE MaKH = ? 
+            WHERE UID = ? 
             LIMIT 1";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $uid);
@@ -53,7 +53,7 @@ if(isset($_POST['DienthoaiKH']) || isset($_POST['DiachiKH'])){
     $diachi = $_POST['DiachiKH'];
     if (isset($conn)) {
     
-        $sql = "UPDATE Users SET DienthoaiKH = ?, DiachiKH = ? WHERE MaKH = ?";
+        $sql = "UPDATE Users SET DienthoaiKH = ?, DiachiKH = ? WHERE UID = ?";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssi",$dienthoai, $diachi, $uid);
             $stmt->execute();
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     try {
         // 1) Tạo đơn hàng mới trong Donhang
         //    TinhtrangDH mặc định 'Đang xử lý', Ngaydat = NOW() theo schema
-        $sqlInsertOrder = "INSERT INTO Donhang (MaKH) VALUES (?)";
+        $sqlInsertOrder = "INSERT INTO Donhang (UID) VALUES (?)";
         $stmtOrder = $conn->prepare($sqlInsertOrder);
         if (!$stmtOrder) {
             throw new Exception("Lỗi chuẩn bị câu lệnh đơn hàng.");
