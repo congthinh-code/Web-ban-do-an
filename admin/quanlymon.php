@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/check_admin.php';
-require_once __DIR__ . '/includes/header_admin.php';
-include __DIR__ . '/includes/sidebar_admin.php';
+//require_once __DIR__ . '/check_admin.php';
+//require_once __DIR__ . '/includes/header_admin.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/sidebar.php';
 
 $search = trim($_GET['q'] ?? '');
 $page = max(1, (int)($_GET['page'] ?? 1));
