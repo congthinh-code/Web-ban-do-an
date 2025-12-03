@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 if( isset($_SESSION['role'])){
     $role = $_SESSION['role'];
-    echo $_SESSION['role'];
 }
 else{
     $role = null;
@@ -19,7 +18,7 @@ $userInfo = null;
 if (!empty($_SESSION['user_id']) && isset($conn)) {
   $uid = intval($_SESSION['user_id']);
   // Lấy thông tin từ Users (sử dụng alias để tương thích với code hiện có)
-  $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar FROM Users WHERE MaKH = ?";
+  $sql = "SELECT UID AS id, Hoten AS username, Email AS email, '' AS avatar FROM Users WHERE UID = ?";
   if ($stmt = $conn->prepare($sql)) {
     $stmt->bind_param("i", $uid);
     $stmt->execute();
