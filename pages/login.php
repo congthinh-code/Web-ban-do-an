@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'register') {
 
     if (empty($errors)) {
         // Kiểm tra email đã tồn tại trong Users
-        $sql = "SELECT MaKH FROM Users WHERE Email = ? LIMIT 1";
+        $sql = "SELECT UID FROM Users WHERE Email = ? LIMIT 1";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('s', $email);
             $stmt->execute();
@@ -215,9 +215,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
                     if ($password === $stored) {
                         $ok = true;
                         $newHash = password_hash($password, PASSWORD_DEFAULT);
-                        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE MaKH = ?");
+                        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE UID = ?");
                         if ($upd) {
-                            $upd->bind_param('si', $newHash, $row['MaKH']);
+                            $upd->bind_param('si', $newHash, $row['UID']);
                             $upd->execute();
                             $upd->close();
                         }
@@ -225,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'login') {
                 }
 
                 if ($ok) {
-                    $_SESSION['user_id']  = $row['MaKH'];
+                    $_SESSION['user_id']  = $row['UID'];
                     $_SESSION['username'] = $row['Hoten'];
                     $_SESSION['role'] = $row['Role'];
                     $ret = $_GET['return_url'] ?? '/index.php';
@@ -252,7 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'forgot') {
     if (!filter_var($emailForgot, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Vui lòng nhập email hợp lệ để khôi phục mật khẩu.';
     } else {
-        $sql = "SELECT MaKH, Hoten FROM Users WHERE Email = ? LIMIT 1";
+        $sql = "SELECT UID, Hoten FROM Users WHERE Email = ? LIMIT 1";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('s', $emailForgot);
             $stmt->execute();
@@ -262,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'forgot') {
 
                 $otpForgot = (string) random_int(100000, 999999);
                 $_SESSION['otp_forgot'] = [
-                    'MaKH'       => $row['MaKH'],
+                    'UID'       => $row['UID'],
                     'Hoten'      => $row['Hoten'],
                     'Email'      => $emailForgot,
                     'otp'        => $otpForgot,
@@ -317,9 +317,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'reset_password') {
         $data    = $_SESSION['otp_forgot'];
         $newHash = password_hash($newPass, PASSWORD_DEFAULT);
 
-        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE MaKH = ?");
+        $upd = $conn->prepare("UPDATE Users SET Matkhau = ? WHERE UID = ?");
         if ($upd) {
-            $upd->bind_param('si', $newHash, $data['MaKH']);
+            $upd->bind_param('si', $newHash, $data['UID']);
             if ($upd->execute()) {
                 $success[] = 'Đặt lại mật khẩu thành công, bạn có thể đăng nhập bằng mật khẩu mới.';
                 unset($_SESSION['otp_forgot']);
