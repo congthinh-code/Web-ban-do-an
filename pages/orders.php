@@ -29,7 +29,7 @@ SELECT
 FROM Donhang d
 JOIN Chitietdonhang c ON d.MaDH = c.MaDH
 JOIN Monan m ON c.Mamon = m.Mamon
-WHERE d.MaKH = {$uid}
+WHERE d.UID = {$uid}
 GROUP BY d.MaDH, d.TinhtrangDH, d.Ngaydat, d.Ngaygiao
 ORDER BY d.Ngaydat DESC
 ";
