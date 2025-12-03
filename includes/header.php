@@ -144,7 +144,7 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
 
           <div class="dropdown-panel" id="accountPanel" role="menu" aria-hidden="true">
             <?php if( isset($role) and $role == "admin"): ?>
-              <a class="dropdown-item" href="/Admin/orders.php">Admin</a>
+              <a class="dropdown-item" href="/admin/index.php">Admin</a>
     		<?php endif; ?>
             <a class="dropdown-item" href="/pages/profile.php">Hồ sơ</a>
             <a class="dropdown-item" href="/pages/orders.php">Đơn hàng</a>
