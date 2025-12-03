@@ -30,15 +30,25 @@ if (!empty($_SESSION['user_id']) && isset($conn)) {
   }
 }
 
+
 // ----- Đếm giỏ hàng (session) -----
 $cartCount = 0;
-if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-  foreach ($_SESSION['cart'] as $it) {
-    $qty = isset($it['qty']) ? intval($it['qty']) : 1;
-    $cartCount += max(0, $qty);
-  }
-}
+if (!empty($_SESSION['user_id']) && isset($conn)) {
+  $uid = intval($_SESSION['user_id']);
 
+  // Lấy thông tin từ số lượng từ giỏ hàng
+    $sql = "SELECT SUM(Soluong) AS total FROM Giohang WHERE UID = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $row = $res->fetch_assoc()) {
+            $cartCount = $row['total'];
+        }
+        $stmt->close();
+    }
+
+}
 // (Notifications removed) — no notification queries or UI in header
 
 // đường dẫn resources
@@ -109,7 +119,7 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
       <div class="action-item">
         <a href="/pages/cart.php" class="btn-ghost cart-btn" aria-label="Giỏ hàng">
           🛒
-          <?php if ($cartCount > 0): ?>
+          <?php if ( $cartCount > 0): ?>
             <span class="badge" id="cartBadge"><?php echo $cartCount; ?></span>
           <?php endif; ?>
         </a>
@@ -146,10 +156,10 @@ $avatarDefault = "/assets/img/default-avatar.jpg";
         <?php endif; ?>
       </div>
 
-      <!-- language -->
+      <!-- language 
       <div class="action-item">
         <button id="langToggle" class="btn-ghost" aria-label="Đổi ngôn ngữ">🇻🇳</button>
-      </div>
+      </div> -->
 
       <!-- mobile menu toggle -->
       <div class="action-item mobile-only">
