@@ -9,7 +9,7 @@ COLLATE=utf8mb4_unicode_ci;
 
 -- Bảng khách hàng + admin + nhân viên (dùng chung)
 CREATE TABLE Users (
-  MaKH INT AUTO_INCREMENT PRIMARY KEY,
+  UID INT AUTO_INCREMENT PRIMARY KEY,
   Hoten VARCHAR(100) NOT NULL,
   Taikhoan VARCHAR(50) UNIQUE NOT NULL,
   Matkhau VARCHAR(100) NOT NULL,          -- NÊN lưu password_hash, không nên lưu plain text
@@ -50,9 +50,9 @@ CREATE TABLE Donhang (
     DEFAULT 'Đang xử lý',
   Ngaydat DATETIME DEFAULT NOW(),
   Ngaygiao DATETIME NULL,
-  MaKH INT,
+  UID INT,
   CONSTRAINT fk_donhang_Users
-    FOREIGN KEY (MaKH) REFERENCES Users(MaKH)
+    FOREIGN KEY (UID) REFERENCES Users(UID)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
@@ -72,19 +72,46 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci;
 
+
+
+-- Bảng giỏ hàng
+CREATE TABLE Giohang (
+  MaGH INT AUTO_INCREMENT PRIMARY KEY,
+  UID INT NOT NULL,
+  Mamon INT NOT NULL,
+  Soluong INT NOT NULL DEFAULT 1,
+  Ngaythem DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_giohang_users
+    FOREIGN KEY (UID) REFERENCES Users(UID)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_giohang_monan
+    FOREIGN KEY (Mamon) REFERENCES Monan(Mamon)
+    ON DELETE CASCADE
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
+
+
+
+
 -- Bảng bình luận
 CREATE TABLE Binhluan (
   MaBL INT AUTO_INCREMENT PRIMARY KEY,
-  MaKH INT,
+  UID INT,
   Mamon INT,
   Noidung VARCHAR(1000) NOT NULL,
   Ngaytao DATETIME NOT NULL,
-  FOREIGN KEY (MaKH) REFERENCES Users(MaKH),
+  FOREIGN KEY (UID) REFERENCES Users(UID),
   FOREIGN KEY (Mamon) REFERENCES Monan(Mamon)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci;
+
+
+
+
 
 /* DỮ LIỆU MẪU */
 
@@ -115,7 +142,7 @@ INSERT INTO Users (Hoten, Taikhoan, Matkhau, Email, DienthoaiKH, DiachiKH, Ngays
 ('Nguyễn Quản Lý', 'admin1', 'admin123', NULL, NULL, NULL, NULL, 'admin'),
 ('Lê Nhân Viên', 'admin2', 'nhanvien01', NULL, NULL, NULL, NULL, 'nhanvien');
 
-INSERT INTO Donhang (TinhtrangDH, Ngaydat, Ngaygiao, MaKH) VALUES
+INSERT INTO Donhang (TinhtrangDH, Ngaydat, Ngaygiao, UID) VALUES
 ('Đang xử lý', '2025-11-01 10:30:00', NULL, 1),
 ('Đã giao', '2025-11-02 12:45:00', '2025-11-03 14:00:00', 2),
 ('Đang giao', '2025-11-05 09:15:00', NULL, 3),
@@ -129,7 +156,31 @@ INSERT INTO Chitietdonhang (MaDH, Mamon, Soluong, Dongia) VALUES
 (3, 6, 3, 35000),
 (4, 2, 1, 40000);
 
-INSERT INTO Binhluan (MaKH, Mamon, Noidung, Ngaytao) VALUES
+
+
+-- DỮ LIỆU MẪU GIỎ HÀNG
+
+INSERT INTO Giohang (UID, Mamon, Soluong) VALUES
+-- User 1: thích cơm gà + trà sữa
+(1, 1, 2),   -- 2 phần Cơm gà xối mỡ
+(1, 3, 1),   -- 1 ly Trà sữa trân châu
+
+-- User 2: đặt mì xào + nước cam
+(2, 5, 1),   -- 1 phần Mì xào hải sản
+(2, 7, 2),   -- 2 ly Nước cam tươi
+
+-- User 3: mê gà rán
+(3, 6, 3),   -- 3 miếng Gà rán giòn
+
+-- User 4: ăn phở + bánh flan tráng miệng
+(4, 2, 1),   -- 1 tô Phở bò tái
+(4, 4, 2);   -- 2 bánh flan caramel
+
+
+
+
+
+INSERT INTO Binhluan (UID, Mamon, Noidung, Ngaytao) VALUES
 (1, 1, 'Món này ăn rất ngon, gà giòn và không bị khô.', '2025-11-02 14:20:00'),
 (2, 3, 'Trà sữa ngọt vừa, trân châu dẻo ngon.', '2025-11-03 16:00:00'),
 (3, 5, 'Mì xào nhiều hải sản, rất chất lượng!', '2025-11-05 09:30:00'),
