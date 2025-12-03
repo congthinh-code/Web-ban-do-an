@@ -3,12 +3,15 @@ session_start();
 include_once '../database/db.php'; // phải tạo $conn (MySQLi)
 require_once __DIR__ . '/../functions/functions.php';
 
+// Lấy UID nếu đã đăng nhập
+$uid = !empty($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+
 // ----- Xử lý thêm sản phẩm vào giỏ từ ?add=ID&qty=?? -----
 if (isset($_GET['add'])) {
     $prod_id = intval($_GET['add']);
 
     // Yêu cầu người dùng phải đăng nhập trước khi thêm vào giỏ
-    if (empty($_SESSION['user_id'])) {
+    if ($uid <= 0) {
         // Chuyển hướng tới trang đăng nhập, giữ lại URL hiện tại để trả về sau khi đăng nhập
         $current = $_SERVER['REQUEST_URI'] ?? '/pages/cart.php';
         header("Location: /pages/login.php?return_url=" . urlencode($current));
@@ -20,7 +23,7 @@ if (isset($_GET['add'])) {
     if ($qty < 1) $qty = 1;
     if ($qty > 99) $qty = 99;
 
-    // Lấy thông tin sản phẩm từ db
+    // Kiểm tra sản phẩm có tồn tại không
     $sql = "SELECT Mamon AS id, Tenmon AS name, Giaban AS price, Anh AS image 
             FROM Monan 
             WHERE Mamon = ?";
@@ -29,24 +32,35 @@ if (isset($_GET['add'])) {
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res && $res->num_rows > 0) {
-            $product = $res->fetch_assoc();
+            // Sản phẩm tồn tại → thao tác với bảng Giohang
+            // Nếu đã có row (UID, Mamon) thì cộng thêm; nếu chưa thì insert
+            $checkSql = "SELECT Soluong FROM Giohang WHERE UID = ? AND Mamon = ? LIMIT 1";
+            if ($check = $conn->prepare($checkSql)) {
+                $check->bind_param("ii", $uid, $prod_id);
+                $check->execute();
+                $r = $check->get_result();
+                if ($r && $r->num_rows > 0) {
+                    // Đã có → UPDATE cộng thêm
+                    $row = $r->fetch_assoc();
+                    $newQty = (int)$row['Soluong'] + $qty;
+                    if ($newQty > 99) $newQty = 99;
 
-            if (!isset($_SESSION['cart'])) {
-                $_SESSION['cart'] = [];
-            }
-
-            if (isset($_SESSION['cart'][$prod_id])) {
-                // Nếu đã có thì cộng thêm số lượng
-                $_SESSION['cart'][$prod_id]['qty'] += $qty;
-            } else {
-                // Nếu chưa có thì thêm mới với qty vừa chọn
-                $_SESSION['cart'][$prod_id] = [
-                    'id'    => $product['id'],
-                    'name'  => $product['name'],
-                    'price' => $product['price'],
-                    'image' => $product['image'],
-                    'qty'   => $qty
-                ];
+                    $uSql = "UPDATE Giohang SET Soluong = ? WHERE UID = ? AND Mamon = ?";
+                    if ($u = $conn->prepare($uSql)) {
+                        $u->bind_param("iii", $newQty, $uid, $prod_id);
+                        $u->execute();
+                        $u->close();
+                    }
+                } else {
+                    // Chưa có → INSERT
+                    $iSql = "INSERT INTO Giohang (UID, Mamon, Soluong) VALUES (?, ?, ?)";
+                    if ($i = $conn->prepare($iSql)) {
+                        $i->bind_param("iii", $uid, $prod_id, $qty);
+                        $i->execute();
+                        $i->close();
+                    }
+                }
+                $check->close();
             }
         }
         $stmt->close();
@@ -66,27 +80,47 @@ if (isset($_GET['add'])) {
 // ----- Xóa sản phẩm khỏi giỏ hàng -----
 if (isset($_GET['remove_id'])) {
     $rid = intval($_GET['remove_id']);
-    if (isset($_SESSION['cart'][$rid])) {
-        unset($_SESSION['cart'][$rid]);
+    if ($uid > 0) {
+        $sql = "DELETE FROM Giohang WHERE UID = ? AND Mamon = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ii", $uid, $rid);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
     header("Location: cart.php");
     exit;
 }
 
-// ----- Tăng giảm số lượng qua link -----
+// ----- Tăng số lượng -----
 if (isset($_GET['increase'])) {
     $id = intval($_GET['increase']);
-    if (isset($_SESSION['cart'][$id])) {
-        $_SESSION['cart'][$id]['qty'] += 1;
+    if ($uid > 0) {
+        $sql = "UPDATE Giohang
+                SET Soluong = CASE WHEN Soluong < 99 THEN Soluong + 1 ELSE 99 END
+                WHERE UID = ? AND Mamon = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ii", $uid, $id);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
     header("Location: cart.php");
     exit;
 }
 
+// ----- Giảm số lượng -----
 if (isset($_GET['decrease'])) {
     $id = intval($_GET['decrease']);
-    if (isset($_SESSION['cart'][$id]) && $_SESSION['cart'][$id]['qty'] > 1) {
-        $_SESSION['cart'][$id]['qty'] -= 1;
+    if ($uid > 0) {
+        $sql = "UPDATE Giohang
+                SET Soluong = CASE WHEN Soluong > 1 THEN Soluong - 1 ELSE 1 END
+                WHERE UID = ? AND Mamon = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ii", $uid, $id);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
     header("Location: cart.php");
     exit;
@@ -94,39 +128,48 @@ if (isset($_GET['decrease'])) {
 
 // ----- Cập nhật số lượng từ form -----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart'])) {
-    foreach ($_POST['qty'] as $id => $q) {
-        $id = intval($id);
-        $q  = intval($q);
-        if ($q < 1) $q = 1;
-        if ($q > 99) $q = 99;
-        if (isset($_SESSION['cart'][$id])) {
-            $_SESSION['cart'][$id]['qty'] = $q;
+    if ($uid > 0 && !empty($_POST['qty']) && is_array($_POST['qty'])) {
+        foreach ($_POST['qty'] as $id => $q) {
+            $id = intval($id);   // chính là Mamon
+            $q  = intval($q);
+            if ($q < 1) $q = 1;
+            if ($q > 99) $q = 99;
+
+            $sql = "UPDATE Giohang SET Soluong = ? WHERE UID = ? AND Mamon = ?";
+            if ($stmt = $conn->prepare($sql)) {
+                $stmt->bind_param("iii", $q, $uid, $id);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
     }
     header("Location: cart.php");
     exit;
 }
 
-// ----- Tính tổng -----
-$cartItems  = $_SESSION['cart'] ?? [];
+// ----- Lấy giỏ hàng từ DB -----
+$cartItems  = [];
 $totalPrice = 0;
-foreach ($cartItems as $item) {
-    $totalPrice += $item['price'] * $item['qty'];
-}
 
-// ----- Lấy thông tin user giống header.php -----
-$userInfo = null;
-if (!empty($_SESSION['user_id']) && isset($conn)) {
-    $uid = intval($_SESSION['user_id']);
-    $sql = "SELECT MaKH AS id, Hoten AS username, Email AS email, '' AS avatar 
-            FROM Users 
-            WHERE MaKH = ?";
+if ($uid > 0 && isset($conn)) {
+    $sql = "SELECT 
+                g.Mamon AS id,
+                m.Tenmon AS name,
+                m.Giaban AS price,
+                m.Anh AS image,
+                g.Soluong AS qty
+            FROM Giohang g
+            JOIN Monan m ON g.Mamon = m.Mamon
+            WHERE g.UID = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("i", $uid);
         $stmt->execute();
         $res = $stmt->get_result();
-        if ($res && $res->num_rows > 0) {
-            $userInfo = $res->fetch_assoc();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $cartItems[$row['id']] = $row;
+                $totalPrice += $row['price'] * $row['qty'];
+            }
         }
         $stmt->close();
     }
@@ -163,16 +206,16 @@ if (!empty($_SESSION['user_id']) && isset($conn)) {
                             </td>
                             <td><?php echo number_format($item['price']); ?>₫</td>
                             <td class="qty-control">
-                                <a href="cart.php?decrease=<?php echo $item['id']; ?>" class="qty-btn">-</a>
+                                <a href="cart.php?decrease=<?php echo (int)$item['id']; ?>" class="qty-btn">-</a>
                                 <input type="number"
-                                       name="qty[<?php echo $item['id']; ?>]"
-                                       value="<?php echo $item['qty']; ?>"
+                                       name="qty[<?php echo (int)$item['id']; ?>]"
+                                       value="<?php echo (int)$item['qty']; ?>"
                                        min="1"
                                        max="99">
-                                <a href="cart.php?increase=<?php echo $item['id']; ?>" class="qty-btn">+</a>
+                                <a href="cart.php?increase=<?php echo (int)$item['id']; ?>" class="qty-btn">+</a>
                             </td>
                             <td><?php echo number_format($item['price'] * $item['qty']); ?>₫</td>
-                            <td><a href="cart.php?remove_id=<?php echo $item['id']; ?>" class="remove-link">Xóa</a></td>
+                            <td><a href="cart.php?remove_id=<?php echo (int)$item['id']; ?>" class="remove-link">Xóa</a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
