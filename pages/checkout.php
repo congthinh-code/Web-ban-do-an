@@ -12,21 +12,67 @@ if (empty($_SESSION['user_id'])) {
 
 $uid = (int)($_SESSION['user_id'] ?? 0);
 
-// Lấy giỏ hàng
-$cartItems = $_SESSION['cart'] ?? [];
+if (!$uid) {
+    header("Location: /pages/login.php");
+    exit;
+}
+
+// ----- Cập nhật số điện thoại / địa chỉ (form Lưu thông tin) -----
+if ($_SERVER['REQUEST_METHOD'] === 'POST'
+    && !isset($_POST['place_order'])
+    && (isset($_POST['DienthoaiKH']) || isset($_POST['DiachiKH']))) {
+
+    $dienthoai = trim($_POST['DienthoaiKH'] ?? '');
+    $diachi    = trim($_POST['DiachiKH'] ?? '');
+
+    if (isset($conn)) {
+        $sql = "UPDATE Users SET DienthoaiKH = ?, DiachiKH = ? WHERE UID = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("ssi", $dienthoai, $diachi, $uid);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    header("Location: checkout.php");
+    exit;
+}
+
+// ----- Lấy giỏ hàng từ bảng Giohang -----
+$cartItems  = [];
+$totalPrice = 0;
+
+if (isset($conn)) {
+    $sql = "SELECT 
+                g.Mamon AS id,
+                m.Tenmon AS name,
+                m.Giaban AS price,
+                m.Anh AS image,
+                g.Soluong AS qty
+            FROM Giohang g
+            JOIN Monan m ON g.Mamon = m.Mamon
+            WHERE g.UID = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $cartItems[] = $row;
+                $totalPrice += $row['price'] * $row['qty'];
+            }
+        }
+        $stmt->close();
+    }
+}
+
+// Nếu giỏ hàng trống → quay lại giỏ
 if (empty($cartItems)) {
-    // Không có gì để thanh toán → quay lại giỏ
     header("Location: cart.php");
     exit;
 }
 
-// Tính tổng tiền từ giỏ
-$totalPrice = 0;
-foreach ($cartItems as $item) {
-    $totalPrice += $item['price'] * $item['qty'];
-}
-
-// Lấy thông tin user (khách hàng)
+// ----- Lấy thông tin user (khách hàng) -----
 $customer = null;
 if (isset($conn)) {
     $sql = "SELECT UID AS UID, Hoten, Email, DienthoaiKH, DiachiKH 
@@ -45,27 +91,9 @@ if (isset($conn)) {
 }
 
 if (!$customer) {
-    echo " Không tìm thấy user yêu cầu đăng nhập lại!";
+    echo "Không tìm thấy user, yêu cầu đăng nhập lại!";
+    exit;
 }
-
-if(isset($_POST['DienthoaiKH']) || isset($_POST['DiachiKH'])){
-    $dienthoai = $_POST['DienthoaiKH'];
-    $diachi = $_POST['DiachiKH'];
-    if (isset($conn)) {
-    
-        $sql = "UPDATE Users SET DienthoaiKH = ?, DiachiKH = ? WHERE UID = ?";
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("ssi",$dienthoai, $diachi, $uid);
-            $stmt->execute();
-            $stmt->close();
-        }
-     
-	}
-    header("location: checkout.php");
-   
-}
-
-
 
 $errorMsg = "";
 $success = false;
@@ -73,7 +101,6 @@ $success = false;
 // ----- Xử lý đặt hàng (Thanh toán khi nhận hàng) -----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     // Double-check giỏ hàng còn tồn tại
-    $cartItems = $_SESSION['cart'] ?? [];
     if (empty($cartItems)) {
         header("Location: cart.php");
         exit;
@@ -84,7 +111,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
 
     try {
         // 1) Tạo đơn hàng mới trong Donhang
-        //    TinhtrangDH mặc định 'Đang xử lý', Ngaydat = NOW() theo schema
         $sqlInsertOrder = "INSERT INTO Donhang (UID) VALUES (?)";
         $stmtOrder = $conn->prepare($sqlInsertOrder);
         if (!$stmtOrder) {
@@ -105,10 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             throw new Exception("Lỗi chuẩn bị câu lệnh chi tiết đơn hàng.");
         }
 
-        foreach ($cartItems as $pid => $item) {
+        foreach ($cartItems as $item) {
             $mamon  = (int)$item['id'];      // id món ăn
             $qty    = (int)$item['qty'];     // số lượng
-            $price  = (float)$item['price']; // đơn giá (Giaban lúc thêm vào giỏ)
+            $price  = (float)$item['price']; // đơn giá (Giaban hiện tại)
 
             if ($qty < 1) $qty = 1;
 
@@ -120,11 +146,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
 
         $stmtItem->close();
 
-        // 3) Commit transaction
-        $conn->commit();
+        // 3) Xóa giỏ hàng trong DB của user này
+        $sqlDelCart = "DELETE FROM Giohang WHERE UID = ?";
+        if ($stmtDel = $conn->prepare($sqlDelCart)) {
+            $stmtDel->bind_param("i", $uid);
+            $stmtDel->execute();
+            $stmtDel->close();
+        }
 
-        // 4) Xóa giỏ hàng
-        unset($_SESSION['cart']);
+        // 4) Commit transaction
+        $conn->commit();
 
         // 5) Chuyển sang trang lịch sử đơn (orders.php)
         header("Location: orders.php?placed=1");
@@ -132,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     } catch (Exception $e) {
         $conn->rollback();
         $errorMsg = "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.";
-        // Nếu muốn debug:
+        // Debug (nếu cần):
         // $errorMsg .= " Chi tiết: " . $e->getMessage();
     }
 }
@@ -146,12 +177,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     <link rel="stylesheet" href="/assets/css/checkout.css">
 </head>
 
-    
-    
-    
 <body>
     <?php include '../includes/header.php'; ?>
-
 
     <div class="checkout-container">
         <a href="cart.php" class="back-link">← Quay lại giỏ hàng</a>
@@ -180,43 +207,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     <div><strong>Địa chỉ:</strong> <?php echo htmlspecialchars($customer['DiachiKH'] ?? ''); ?></div>
                 </div>
 
-         
-                
                 <?php if (empty($customer['DienthoaiKH']) || empty($customer['DiachiKH'])): ?>
-                	<form id="formuser" action="" method="post">
-                            <div class="form-group">
-                              <label>Số điện thoại</label>
-                              <input type="text" name="DienthoaiKH"
-                                     value="<?php echo htmlspecialchars($user['DienthoaiKH'] ?? ''); ?>">
-                            </div>
+                    <form id="formuser" action="" method="post">
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" name="DienthoaiKH"
+                                   value="<?php echo htmlspecialchars($customer['DienthoaiKH'] ?? ''); ?>">
+                        </div>
 
-                            <div class="form-group align-center">
-                              <label>Địa chỉ</label>
-                              <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($user['DiachiKH'] ?? ''); ?></textarea>
-                            </div>
-                    		<button id="btnSave" class="btn-save" type="submit">Lưu</button>
-                	</form>
-                
+                        <div class="form-group align-center">
+                            <label>Địa chỉ</label>
+                            <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($customer['DiachiKH'] ?? ''); ?></textarea>
+                        </div>
+                        <button id="btnSave" class="btn-save" type="submit">Lưu</button>
+                    </form>
                 <?php else: ?>
-                <button id="updateUser" class="btn-save">Cập nhật</button>         	
-                <form id="formuserr" style="display: none;" action="" method="post">
-                            <div class="form-group">
-                              <label>Số điện thoại</label>
-                              <input type="text" name="DienthoaiKH"
-                                     value="<?php echo htmlspecialchars($user['DienthoaiKH'] ?? ''); ?>">
-                            </div>
+                    <button id="updateUser" class="btn-save" type="button">Cập nhật</button>
+                    <form id="formuserr" style="display: none;" action="" method="post">
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" name="DienthoaiKH"
+                                   value="<?php echo htmlspecialchars($customer['DienthoaiKH'] ?? ''); ?>">
+                        </div>
 
-                            <div class="form-group align-center">
-                              <label>Địa chỉ</label>
-                              <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($user['DiachiKH'] ?? ''); ?></textarea>
-                            </div>
-                    		<button id="btnSave" class="btn-save" type="submit">Lưu</button>
-                	</form>
+                        <div class="form-group align-center">
+                            <label>Địa chỉ</label>
+                            <textarea name="DiachiKH" rows="3"><?php echo htmlspecialchars($customer['DiachiKH'] ?? ''); ?></textarea>
+                        </div>
+                        <button id="btnSave2" class="btn-save" type="submit">Lưu</button>
+                    </form>
                 <?php endif; ?>
 
-                
-                
-                
                 <div class="cod-box">
                     <span class="icon">💰</span>
                     <div>
@@ -286,15 +307,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             </div>
         </div>
     </div>
-  
 
+    <script>
+    // JS nhỏ để show form cập nhật
+    const btnUpdate = document.getElementById('updateUser');
+    const formEdit  = document.getElementById('formuserr');
+    if (btnUpdate && formEdit) {
+        btnUpdate.addEventListener('click', () => {
+            if (formEdit.style.display === 'none' || formEdit.style.display === '') {
+                formEdit.style.display = 'block';
+            } else {
+                formEdit.style.display = 'none';
+            }
+        });
+    }
+    </script>
 
-   <script src="../../assets/js/checkout.js"></script>  
-    
+    <script src="../../assets/js/checkout.js"></script>  
+
     <?php include '../includes/footer.php'; ?>
 </body>
-    
-    
-    
-    
 </html>
