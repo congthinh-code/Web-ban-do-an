@@ -1,3 +1,11 @@
+<?php
+if(!isset($_SESSION['role']) || $_SESSION['role'] != "admin"){
+    echo"bạn không phải admin";
+    header("Refresh: 2; url=../index.php");
+    exit();
+
+}
+?>
 <div class="admin-sidebar">
     <ul>
         <li><a href="index.php">Dashboard</a></li>
