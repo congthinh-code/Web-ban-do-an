@@ -1,6 +1,16 @@
 <?php
 session_start();
 require_once __DIR__ . '/../database/db.php';
+//không có role k phải tài khoản admin thì out
+
+if(!isset($_SESSION['role']) || $_SESSION['role'] != "admin"){
+    echo"bạn không phải admin";
+    header("Refresh: 2; url=../index.php");
+    exit();
+
+}
+
+
 
 // --- Hàm lấy dữ liệu ---
 function countMenuItems($conn){ $result = $conn->query("SELECT COUNT(*) as total FROM Monan"); return $result->fetch_assoc()['total']; }
@@ -32,26 +42,20 @@ while($row = $statusQuery->fetch_assoc()){
 <link rel="stylesheet" href="../assets/css/admin.css">
     
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="icon" type="image/jpg" sizes="16x16" href="../images/logo.jpg">
+<link rel="icon" type="image/jpg" sizes="16x16" href="../assets/img/logo.jpg">
 </head>
 <body>
-    <header class="admin-header">
+    
+<header class="admin-header">
     <h1>
-        <img src="../images/logo.jpg" alt="Logo"> Ăn Húp Hội
+        <img  style="with:35px; height: 35px; " src="../assets/img/logo.jpg" alt="Logo"> Ăn Húp Hội
     </h1>
     <div>
         <a href="../index.php" class="btn">Trang chủ</a>
-        <a href="logout.php" class="btn">Đăng xuất</a>
+        <a href="../pages/auth/logout.php" class="btn">Đăng xuất</a>
     </div>
 </header>
 
-<header class="admin-header">
-    <h1>Ăn Húp Hội</h1>
-    <div>
-        <a href="../index.php" class="btn">Trang chủ</a>
-        <a href="logout.php" class="btn">Đăng xuất</a>
-    </div>
-</header>
 
 <div class="admin-sidebar">
     <ul>
